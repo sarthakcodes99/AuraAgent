@@ -1,8 +1,19 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-night-scene.jpg";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const [userInput, setUserInput] = useState("");
+  const navigate = useNavigate();
+
+  const handleBuildSite = () => {
+    if (userInput.trim()) {
+      navigate("/output", { state: { userInput } });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Image with Overlay */}
@@ -41,10 +52,17 @@ const Hero = () => {
             <div className="flex gap-2">
               <input
                 type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleBuildSite()}
                 placeholder="Describe your website idea... (e.g., 'Create a portfolio for a photographer')"
                 className="flex-1 px-6 py-4 rounded-lg bg-card/60 border border-primary/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <Button size="lg" className="gradient-primary btn-glow border-0 text-lg px-8 whitespace-nowrap">
+              <Button 
+                size="lg" 
+                className="gradient-primary btn-glow border-0 text-lg px-8 whitespace-nowrap"
+                onClick={handleBuildSite}
+              >
                 Build My Site
               </Button>
             </div>
