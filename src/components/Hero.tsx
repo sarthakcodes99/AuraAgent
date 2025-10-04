@@ -39,7 +39,7 @@ const Hero = () => {
           
           <h1 className="text-5xl md:text-7xl font-bold text-glow leading-tight">
             Make websites{" "}
-            <span className="gradient-glow bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               without limits
             </span>
           </h1>
@@ -49,21 +49,22 @@ const Hero = () => {
           </p>
           
           <div className="max-w-2xl mx-auto w-full">
-            <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row gap-3">
               <input
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleBuildSite()}
                 placeholder="Describe your website idea... (e.g., 'Create a portfolio for a photographer')"
-                className="flex-1 px-6 py-4 rounded-lg bg-card/60 border border-primary/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex-1 px-6 py-4 rounded-xl glass-card border border-primary/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary transition-all duration-300 text-base"
               />
               <Button 
                 size="lg" 
-                className="gradient-primary btn-glow border-0 text-lg px-8 whitespace-nowrap"
+                className="gradient-primary btn-glow shadow-lg shadow-primary/50 text-white font-semibold text-base px-10 py-4 h-auto rounded-xl hover:scale-105 transition-transform duration-200"
                 onClick={handleBuildSite}
               >
                 Build My Site
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
           </div>
