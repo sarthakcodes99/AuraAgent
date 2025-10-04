@@ -27,8 +27,7 @@ const Hero = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold text-glow leading-tight">
-            Make websites
-            <br />
+            Make websites{" "}
             <span className="gradient-glow bg-clip-text text-transparent">
               without limits
             </span>
@@ -38,14 +37,17 @@ const Hero = () => {
             Your AI website no code builder
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Button size="lg" className="gradient-primary btn-glow border-0 text-lg px-8 py-6 group">
-              Try OnePrompt
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="lg" variant="outline" className="glass-card text-lg px-8 py-6 border-primary/30 hover:border-primary/50">
-              Learn More
-            </Button>
+          <div className="max-w-2xl mx-auto w-full">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Describe your website idea... (e.g., 'Create a portfolio for a photographer')"
+                className="flex-1 px-6 py-4 rounded-lg bg-card/60 border border-primary/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Button size="lg" className="gradient-primary btn-glow border-0 text-lg px-8 whitespace-nowrap">
+                Build My Site
+              </Button>
+            </div>
           </div>
         </div>
       </div>

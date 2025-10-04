@@ -12,14 +12,14 @@ const Navigation = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors">
+            <a href="#features" className="text-foreground/80 hover:text-foreground transition-colors scroll-smooth">
               Features
             </a>
-            <a href="#about" className="text-foreground/80 hover:text-foreground transition-colors">
+            <a href="#about" className="text-foreground/80 hover:text-foreground transition-colors scroll-smooth">
               About
             </a>
             <Button className="gradient-primary btn-glow border-0">
-              Try OnePrompt
+              Get Started
             </Button>
           </div>
         </div>
