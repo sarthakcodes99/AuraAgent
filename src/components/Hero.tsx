@@ -3,10 +3,12 @@ import heroImage from "@/assets/hero-night-scene.jpg";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Hero = () => {
   const [userInput, setUserInput] = useState("");
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
 
   const handleBuildSite = () => {
     if (userInput.trim()) {
@@ -32,6 +34,17 @@ const Hero = () => {
       {/* Content */}
       <div className="container mx-auto px-6 relative z-10 text-center">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+          {user && profile && (
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-glow">
+                Hello, {profile.name}! 👋
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                Ready to create something amazing?
+              </p>
+            </div>
+          )}
+          
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm text-foreground/90">AI-Powered Website Builder</span>
