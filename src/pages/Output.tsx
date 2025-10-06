@@ -2,32 +2,99 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, ArrowLeft, Send } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Output = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const userInput = location.state?.userInput || "Your website idea";
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
   const [inputValue, setInputValue] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [websiteContent, setWebsiteContent] = useState<string>("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const updatePreview = (html: string, css: string, js: string) => {
+    const fullContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Generated Website</title>
+        <style>${css}</style>
+      </head>
+      <body>
+        ${html}
+        <script>${js}</script>
+      </body>
+      </html>
+    `;
+    setWebsiteContent(fullContent);
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isGenerating) return;
     
-    // Add user message
     const userMessage = { role: 'user' as const, content: inputValue };
     setMessages(prev => [...prev, userMessage]);
     
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage = { 
-        role: 'ai' as const, 
-        content: `I'll ${inputValue.toLowerCase()}. Updating your website now...` 
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    const loadingMessage = { role: 'ai' as const, content: '🔄 Generating your website...' };
+    setMessages(prev => [...prev, loadingMessage]);
     
+    setIsGenerating(true);
+    const currentInput = inputValue;
     setInputValue("");
+
+    try {
+      const response = await fetch('https://sarthak123.app.n8n.cloud/webhook-test/624088c2-c8b0-4141-8701-5b5678b0c0f3', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: currentInput,
+          user_id: user?.id || 'anonymous'
+        })
+      });
+
+      if (!response.ok) throw new Error('Generation failed');
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        updatePreview(result.html, result.css, result.js);
+        
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { 
+            role: 'ai' as const, 
+            content: '✅ Website updated successfully!' 
+          };
+          return updated;
+        });
+        
+        toast.success("Website generated successfully!");
+      } else {
+        throw new Error('Invalid response');
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { 
+          role: 'ai' as const, 
+          content: '❌ Generation failed, please try again' 
+        };
+        return updated;
+      });
+      toast.error("Failed to generate website");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -101,10 +168,10 @@ const Output = () => {
             <Button 
               onClick={handleSend}
               className="w-full gradient-primary btn-glow border-0"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isGenerating}
             >
               <Send className="w-4 h-4 mr-2" />
-              Send
+              {isGenerating ? 'Generating...' : 'Send'}
             </Button>
           </div>
         </div>
@@ -113,9 +180,10 @@ const Output = () => {
         <div className="flex-1 bg-background p-8 overflow-auto">
           <div className="max-w-6xl mx-auto">
             <div className="glass-card rounded-lg overflow-hidden">
-              {/* Sample Website Preview */}
+              {/* Website Preview */}
               <iframe
-                srcDoc={`
+                ref={iframeRef}
+                srcDoc={websiteContent || `
                   <!DOCTYPE html>
                   <html lang="en">
                   <head>
