@@ -64,22 +64,46 @@ const Output = () => {
       if (!response.ok) throw new Error('Generation failed');
 
       const result = await response.json();
+      
+      console.log('n8n Response:', result);
 
-      if (result.status === 'success') {
-        updatePreview(result.html, result.css, result.js);
+      // Handle different response formats
+      let html = '';
+      let css = '';
+      let js = '';
+      
+      if (result.status === 'success' && result.html) {
+        // Expected format
+        html = result.html;
+        css = result.css || '';
+        js = result.js || '';
+      } else if (result.html || result.css || result.js) {
+        // Partial response
+        html = result.html || '';
+        css = result.css || '';
+        js = result.js || '';
+      } else {
+        // Try to extract from any field
+        const resultStr = JSON.stringify(result);
+        console.log('Unexpected response format:', resultStr);
+        throw new Error(`Invalid response format: ${resultStr.substring(0, 100)}`);
+      }
+
+      if (html || css || js) {
+        updatePreview(html, css, js);
         
         setMessages(prev => {
           const updated = [...prev];
           updated[updated.length - 1] = { 
             role: 'ai' as const, 
-            content: '✅ Website updated successfully!' 
+            content: '✅ Website generated successfully! Check the preview on the right.' 
           };
           return updated;
         });
         
         toast.success("Website generated successfully!");
       } else {
-        throw new Error('Invalid response');
+        throw new Error('No HTML content received from n8n');
       }
     } catch (error) {
       console.error('Generation error:', error);
