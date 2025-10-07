@@ -188,13 +188,12 @@ const Output = () => {
         </div>
 
         {/* Main Content Area - Website Preview */}
-        <div className="flex-1 bg-background p-8 overflow-auto">
-          <div className="max-w-6xl mx-auto">
-            <div className="glass-card rounded-lg overflow-hidden">
-              {/* Website Preview */}
-              <iframe
-                ref={iframeRef}
-                srcDoc={websiteContent || `
+        <div className="flex-1 bg-background overflow-hidden">
+          <div className="w-full h-full">
+            {/* Website Preview */}
+            <iframe
+              ref={iframeRef}
+              srcDoc={websiteContent || `
                   <!DOCTYPE html>
                   <html lang="en">
                   <head>
@@ -289,10 +288,9 @@ const Output = () => {
                   </html>
                 `}
                 title="Website Preview"
-                className="w-full h-[800px] border-0"
+                className="w-full h-full border-0"
                 sandbox="allow-scripts allow-same-origin"
               />
-            </div>
           </div>
         </div>
       </div>
