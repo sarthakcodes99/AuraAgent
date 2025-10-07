@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { parseAndSeparateCode } from "@/utils/codeParser";
 
 const Output = () => {
   const location = useLocation();
@@ -67,43 +68,29 @@ const Output = () => {
       
       console.log('n8n Response:', result);
 
-      // Handle different response formats
-      let html = '';
-      let css = '';
-      let js = '';
+      // Use smart parser to separate code and text
+      const parsed = parseAndSeparateCode(result);
       
-      if (result.status === 'success' && result.html) {
-        // Expected format
-        html = result.html;
-        css = result.css || '';
-        js = result.js || '';
-      } else if (result.html || result.css || result.js) {
-        // Partial response
-        html = result.html || '';
-        css = result.css || '';
-        js = result.js || '';
-      } else {
-        // Try to extract from any field
-        const resultStr = JSON.stringify(result);
-        console.log('Unexpected response format:', resultStr);
-        throw new Error(`Invalid response format: ${resultStr.substring(0, 100)}`);
-      }
+      console.log('Parsed output:', parsed);
 
-      if (html || css || js) {
-        updatePreview(html, css, js);
+      if (parsed.html || parsed.css || parsed.js) {
+        updatePreview(parsed.html, parsed.css, parsed.js);
+        
+        // Show plain text response in chat if available
+        const responseText = parsed.text || '✅ Website generated successfully! Check the preview on the right.';
         
         setMessages(prev => {
           const updated = [...prev];
           updated[updated.length - 1] = { 
             role: 'ai' as const, 
-            content: '✅ Website generated successfully! Check the preview on the right.' 
+            content: responseText
           };
           return updated;
         });
         
         toast.success("Website generated successfully!");
       } else {
-        throw new Error('No HTML content received from n8n');
+        throw new Error('No code content detected in response');
       }
     } catch (error) {
       console.error('Generation error:', error);
