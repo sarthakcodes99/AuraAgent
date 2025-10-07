@@ -51,7 +51,7 @@ const Output = () => {
     setInputValue("");
 
     try {
-      const response = await fetch('https://sarthak123.app.n8n.cloud/webhook-test/Generate-website', {
+      const response = await fetch('https://sarthak123.app.n8n.cloud/webhook-test/98eaee2b-93d4-4c19-ab21-44e8b7fda406', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
