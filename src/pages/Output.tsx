@@ -199,91 +199,33 @@ const Output = () => {
                   <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Generated Website</title>
+                    <title>Preview</title>
                     <style>
                       * { margin: 0; padding: 0; box-sizing: border-box; }
-                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }
-                      header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; }
-                      nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-                      nav h1 { font-size: 1.5rem; }
-                      nav ul { display: flex; gap: 2rem; list-style: none; }
-                      nav a { color: white; text-decoration: none; transition: opacity 0.3s; }
-                      nav a:hover { opacity: 0.8; }
-                      .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 2rem; text-align: center; }
-                      .hero h2 { font-size: 2.5rem; margin-bottom: 1rem; }
-                      .hero p { font-size: 1.2rem; margin-bottom: 2rem; }
-                      .btn { background: white; color: #667eea; padding: 0.75rem 2rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
-                      .btn:hover { transform: scale(1.05); }
-                      .section { padding: 3rem 2rem; max-width: 1200px; margin: 0 auto; }
-                      .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem; }
-                      .feature { padding: 2rem; background: #f7fafc; border-radius: 10px; text-align: center; }
-                      .contact-form { max-width: 500px; margin: 2rem auto; }
-                      .contact-form input, .contact-form textarea { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; }
-                      .contact-form button { width: 100%; }
-                      footer { background: #2d3748; color: white; text-align: center; padding: 2rem; }
+                      body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                      }
+                      h1 {
+                        font-size: 3rem;
+                        font-weight: 700;
+                        text-align: center;
+                        padding: 2rem;
+                        animation: fadeIn 1s ease-in;
+                      }
+                      @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                      }
                     </style>
                   </head>
                   <body>
-                    <header>
-                      <nav>
-                        <h1>Your Website</h1>
-                        <ul>
-                          <li><a href="#home" onclick="scrollToSection('home')">Home</a></li>
-                          <li><a href="#features" onclick="scrollToSection('features')">Features</a></li>
-                          <li><a href="#contact" onclick="scrollToSection('contact')">Contact</a></li>
-                        </ul>
-                      </nav>
-                    </header>
-                    
-                    <section id="home" class="hero">
-                      <h2>Welcome to Your New Website</h2>
-                      <p>Built with AI in seconds</p>
-                      <button class="btn" onclick="alert('Button clicked! This is fully functional.')">Get Started</button>
-                    </section>
-                    
-                    <section id="features" class="section">
-                      <h2 style="text-align: center; margin-bottom: 1rem;">Features</h2>
-                      <div class="features">
-                        <div class="feature">
-                          <h3>Fast Performance</h3>
-                          <p>Lightning-fast load times</p>
-                        </div>
-                        <div class="feature">
-                          <h3>Responsive Design</h3>
-                          <p>Works on all devices</p>
-                        </div>
-                        <div class="feature">
-                          <h3>Easy to Use</h3>
-                          <p>Intuitive interface</p>
-                        </div>
-                      </div>
-                    </section>
-                    
-                    <section id="contact" class="section">
-                      <h2 style="text-align: center; margin-bottom: 1rem;">Contact Us</h2>
-                      <form class="contact-form" onsubmit="handleSubmit(event)">
-                        <input type="text" placeholder="Your Name" required />
-                        <input type="email" placeholder="Your Email" required />
-                        <textarea placeholder="Your Message" rows="5" required></textarea>
-                        <button type="submit" class="btn">Send Message</button>
-                      </form>
-                    </section>
-                    
-                    <footer>
-                      <p>&copy; 2025 Your Website. All rights reserved.</p>
-                    </footer>
-                    
-                    <script>
-                      function scrollToSection(id) {
-                        document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-                      }
-                      
-                      function handleSubmit(e) {
-                        e.preventDefault();
-                        alert('Form submitted successfully! (This is a demo)');
-                        e.target.reset();
-                      }
-                    </script>
+                    <h1>YOUR WEBSITE LOADS HERE!</h1>
                   </body>
                   </html>
                 `}
