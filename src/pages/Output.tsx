@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { parseAndSeparateCode } from "@/utils/codeParser";
 
 const Output = () => {
   const navigate = useNavigate();
@@ -13,10 +12,8 @@ const Output = () => {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
   const [inputValue, setInputValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [websiteContent, setWebsiteContent] = useState<string>("");
   const [showGreeting, setShowGreeting] = useState(true);
   const [typedText, setTypedText] = useState("");
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const greetingText = "hey, what are we building today?";
@@ -39,25 +36,6 @@ const Output = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const updatePreview = (html: string, css: string, js: string) => {
-    const fullContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Generated Website</title>
-        <style>${css}</style>
-      </head>
-      <body>
-        ${html}
-        <script>${js}</script>
-      </body>
-      </html>
-    `;
-    setWebsiteContent(fullContent);
-  };
 
   const handleSend = async () => {
     if (!inputValue.trim() || isGenerating) return;
@@ -90,32 +68,21 @@ const Output = () => {
 
       const result = await response.json();
       
-      console.log('n8n Response:', result);
+      console.log('AI Response:', result);
 
-      // Use smart parser to separate code and text
-      const parsed = parseAndSeparateCode(result);
+      // Display raw AI response
+      const responseText = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
       
-      console.log('Parsed output:', parsed);
-
-      if (parsed.html || parsed.css || parsed.js) {
-        updatePreview(parsed.html, parsed.css, parsed.js);
-        
-        // Show plain text response in chat if available
-        const responseText = parsed.text || '✅ Website generated successfully! Check the preview on the right.';
-        
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { 
-            role: 'ai' as const, 
-            content: responseText
-          };
-          return updated;
-        });
-        
-        toast.success("Website generated successfully!");
-      } else {
-        throw new Error('No code content detected in response');
-      }
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { 
+          role: 'ai' as const, 
+          content: responseText
+        };
+        return updated;
+      });
+      
+      toast.success("Response generated successfully!");
     } catch (error) {
       console.error('Generation error:', error);
       setMessages(prev => {
@@ -168,7 +135,7 @@ const Output = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex pt-20">
         {/* Chat Panel */}
-        <div className="w-1/2 flex flex-col border-r border-border bg-background/50">
+        <div className="flex-1 flex flex-col bg-background/50 max-w-4xl mx-auto w-full">
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {showGreeting && messages.length === 0 && (
               <div className="flex items-center justify-center h-full">
@@ -184,13 +151,13 @@ const Output = () => {
                 {msg.role === 'user' ? (
                   <div className="flex justify-end mb-4">
                     <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
-                      <p className="text-foreground text-sm leading-relaxed">{msg.content}</p>
+                      <p className="text-foreground font-medium text-base leading-relaxed">{msg.content}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="mb-4">
                     <div className="prose prose-sm max-w-none">
-                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
                     </div>
                   </div>
                 )}
@@ -224,21 +191,6 @@ const Output = () => {
               </Button>
             </div>
           </div>
-        </div>
-
-        {/* Preview Panel */}
-        <div className="w-1/2 bg-background overflow-hidden">
-          {websiteContent ? (
-            <iframe
-              ref={iframeRef}
-              srcDoc={websiteContent}
-              title="Website Preview"
-              className="w-full h-full border-0"
-              sandbox="allow-scripts allow-same-origin"
-            />
-          ) : (
-            <div className="w-full h-full" />
-          )}
         </div>
       </div>
     </div>
