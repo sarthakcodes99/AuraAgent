@@ -1,22 +1,44 @@
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, ArrowLeft, Send } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { Sparkles, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { parseAndSeparateCode } from "@/utils/codeParser";
 
 const Output = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const userInput = location.state?.userInput || "Your website idea";
+  const { user, signOut } = useAuth();
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
   const [inputValue, setInputValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [websiteContent, setWebsiteContent] = useState<string>("");
+  const [showGreeting, setShowGreeting] = useState(true);
+  const [typedText, setTypedText] = useState("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const greetingText = "hey, what are we building today?";
+
+  useEffect(() => {
+    if (showGreeting) {
+      let index = 0;
+      const timer = setInterval(() => {
+        if (index < greetingText.length) {
+          setTypedText(greetingText.slice(0, index + 1));
+          index++;
+        } else {
+          clearInterval(timer);
+        }
+      }, 80);
+      return () => clearInterval(timer);
+    }
+  }, [showGreeting]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const updatePreview = (html: string, css: string, js: string) => {
     const fullContent = `
@@ -40,6 +62,8 @@ const Output = () => {
   const handleSend = async () => {
     if (!inputValue.trim() || isGenerating) return;
     
+    setShowGreeting(false);
+    
     const userMessage = { role: 'user' as const, content: inputValue };
     setMessages(prev => [...prev, userMessage]);
     
@@ -51,7 +75,7 @@ const Output = () => {
     setInputValue("");
 
     try {
-      const response = await fetch('https://sarthak123.app.n8n.cloud/webhook-test/98eaee2b-93d4-4c19-ab21-44e8b7fda406', {
+      const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook-test/e0d53415-462c-4b12-bd13-07cf1a032de9', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,130 +134,143 @@ const Output = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
+      {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
               <Sparkles className="w-6 h-6 text-primary" />
               <span className="text-2xl font-bold text-glow">OnePrompt</span>
             </div>
-            <Button className="gradient-primary btn-glow border-0">
-              Get Started
-            </Button>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => navigate("/")}>
+                Home
+              </Button>
+              {user ? (
+                <Button variant="ghost" onClick={signOut}>
+                  Logout
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" onClick={() => navigate("/login")}>
+                    Login
+                  </Button>
+                  <Button className="gradient-primary btn-glow border-0" onClick={() => navigate("/signup")}>
+                    Sign Up
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex pt-20">
-        {/* Left Side Panel - User Input */}
-        <div className="w-80 border-r border-border bg-card/40 p-6 flex flex-col">
-          <Button 
-            variant="ghost" 
-            className="mb-6 text-foreground/80 hover:text-foreground"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-          
-          <div className="glass-card p-4 rounded-lg">
-            <h3 className="text-sm font-semibold text-primary mb-3">Your Prompt</h3>
-            <p className="text-foreground/90 text-sm leading-relaxed">
-              {userInput}
-            </p>
-          </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 mt-6 overflow-y-auto space-y-3">
+        {/* Chat Panel */}
+        <div className="w-1/2 flex flex-col border-r border-border bg-background/50">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {showGreeting && messages.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <h1 className="text-4xl font-bold text-primary animate-fade-in">
+                  {typedText}
+                  <span className="animate-pulse">|</span>
+                </h1>
+              </div>
+            )}
+            
             {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`glass-card p-3 rounded-lg max-w-[85%] ${
-                  msg.role === 'user' 
-                    ? 'bg-primary/20 border-primary/30' 
-                    : 'bg-card/60'
-                }`}>
-                  <p className="text-foreground/90 text-sm leading-relaxed">
-                    {msg.content}
-                  </p>
-                </div>
+              <div key={idx}>
+                {msg.role === 'user' ? (
+                  <div className="flex justify-end mb-4">
+                    <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
+                      <p className="text-foreground text-sm leading-relaxed">{msg.content}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-4">
+                    <div className="prose prose-sm max-w-none">
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Box */}
-          <div className="mt-4 space-y-3">
-            <Textarea
-              placeholder="Describe changes to your website..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              className="min-h-[80px] resize-none"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            <Button 
-              onClick={handleSend}
-              className="w-full gradient-primary btn-glow border-0"
-              disabled={!inputValue.trim() || isGenerating}
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {isGenerating ? 'Generating...' : 'Send'}
-            </Button>
+          {/* Input Area */}
+          <div className="p-6 border-t border-border bg-background/80">
+            <div className="flex gap-3 items-center">
+              <Input
+                placeholder="Describe your website..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1"
+                disabled={isGenerating}
+              />
+              <Button 
+                onClick={handleSend}
+                className="gradient-primary btn-glow border-0"
+                disabled={!inputValue.trim() || isGenerating}
+                size="icon"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Main Content Area - Website Preview */}
-        <div className="flex-1 bg-background overflow-hidden">
-          <div className="w-full h-full">
-            {/* Website Preview */}
-            <iframe
-              ref={iframeRef}
-              srcDoc={websiteContent || `
-                  <!DOCTYPE html>
-                  <html lang="en">
-                  <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Preview</title>
-                    <style>
-                      * { margin: 0; padding: 0; box-sizing: border-box; }
-                      body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        min-height: 100vh;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                      }
-                      h1 {
-                        font-size: 3rem;
-                        font-weight: 700;
-                        text-align: center;
-                        padding: 2rem;
-                        animation: fadeIn 1s ease-in;
-                      }
-                      @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(-20px); }
-                        to { opacity: 1; transform: translateY(0); }
-                      }
-                    </style>
-                  </head>
-                  <body>
-                    <h1>YOUR WEBSITE LOADS HERE!</h1>
-                  </body>
-                  </html>
-                `}
-                title="Website Preview"
-                className="w-full h-full border-0"
-                sandbox="allow-scripts allow-same-origin"
-              />
-          </div>
+        {/* Preview Panel */}
+        <div className="w-1/2 bg-background overflow-hidden">
+          <iframe
+            ref={iframeRef}
+            srcDoc={websiteContent || `
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Preview</title>
+                <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                  }
+                  h1 {
+                    font-size: 3rem;
+                    font-weight: 700;
+                    text-align: center;
+                    padding: 2rem;
+                    animation: fadeIn 1s ease-in;
+                  }
+                  @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                  }
+                </style>
+              </head>
+              <body>
+                <h1>YOUR WEBSITE LOADS HERE!</h1>
+              </body>
+              </html>
+            `}
+            title="Website Preview"
+            className="w-full h-full border-0"
+            sandbox="allow-scripts allow-same-origin"
+          />
         </div>
       </div>
     </div>
