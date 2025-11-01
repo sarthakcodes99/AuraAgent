@@ -227,14 +227,18 @@ const Output = () => {
         </div>
 
         {/* Preview Panel */}
-        <div className="w-1/2 bg-white overflow-hidden">
-          <iframe
-            ref={iframeRef}
-            srcDoc={websiteContent || ""}
-            title="Website Preview"
-            className="w-full h-full border-0 bg-white"
-            sandbox="allow-scripts allow-same-origin"
-          />
+        <div className="w-1/2 bg-background overflow-hidden">
+          {websiteContent ? (
+            <iframe
+              ref={iframeRef}
+              srcDoc={websiteContent}
+              title="Website Preview"
+              className="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin"
+            />
+          ) : (
+            <div className="w-full h-full" />
+          )}
         </div>
       </div>
     </div>

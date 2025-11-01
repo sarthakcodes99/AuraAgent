@@ -8,39 +8,39 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Bright Modern Theme - All colors in HSL */
-    --background: 220 15% 96%;
-    --foreground: 222 47% 11%;
+    /* Dark Perplexity Theme - All colors in HSL */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 88%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 214 32% 91%;
-    --muted-foreground: 215 20% 45%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 280 80% 70%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
     --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
     /* Glassmorphism */
-    --glass-bg: 0 0% 100% / 0.6;
+    --glass-bg: 0 0% 10% / 0.5;
     --glass-border: 217 91% 60% / 0.2;
 
     /* Gradients */
