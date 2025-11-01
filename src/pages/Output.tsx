@@ -201,7 +201,7 @@ const Output = () => {
 
           {/* Input Area */}
           <div className="p-6 border-t border-border bg-background/80">
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3 items-end justify-center">
               <Input
                 placeholder="Describe your website..."
                 value={inputValue}
@@ -212,14 +212,13 @@ const Output = () => {
                     handleSend();
                   }
                 }}
-                className="flex-1"
+                className="w-[70%] h-16 text-base"
                 disabled={isGenerating}
               />
               <Button 
                 onClick={handleSend}
-                className="gradient-primary btn-glow border-0"
+                className="gradient-primary btn-glow border-0 h-16 px-6"
                 disabled={!inputValue.trim() || isGenerating}
-                size="icon"
               >
                 <Send className="w-5 h-5" />
               </Button>
@@ -228,47 +227,12 @@ const Output = () => {
         </div>
 
         {/* Preview Panel */}
-        <div className="w-1/2 bg-background overflow-hidden">
+        <div className="w-1/2 bg-white overflow-hidden">
           <iframe
             ref={iframeRef}
-            srcDoc={websiteContent || `
-              <!DOCTYPE html>
-              <html lang="en">
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Preview</title>
-                <style>
-                  * { margin: 0; padding: 0; box-sizing: border-box; }
-                  body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                  }
-                  h1 {
-                    font-size: 3rem;
-                    font-weight: 700;
-                    text-align: center;
-                    padding: 2rem;
-                    animation: fadeIn 1s ease-in;
-                  }
-                  @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                  }
-                </style>
-              </head>
-              <body>
-                <h1>YOUR WEBSITE LOADS HERE!</h1>
-              </body>
-              </html>
-            `}
+            srcDoc={websiteContent || ""}
             title="Website Preview"
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 bg-white"
             sandbox="allow-scripts allow-same-origin"
           />
         </div>
