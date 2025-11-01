@@ -70,14 +70,14 @@ const Output = () => {
       
       console.log('AI Response:', result);
 
-      // Display raw AI response
-      const responseText = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+      // Extract and display only the output field
+      const outputText = result.output || 'No response generated';
       
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { 
           role: 'ai' as const, 
-          content: responseText
+          content: outputText
         };
         return updated;
       });
