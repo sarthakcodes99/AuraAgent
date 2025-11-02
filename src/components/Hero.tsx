@@ -1,14 +1,30 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-night-scene.jpg";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Hero = () => {
   const [userInput, setUserInput] = useState("");
+  const [typedHeading, setTypedHeading] = useState("");
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+
+  const headingText = "without limits";
+
+  useEffect(() => {
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index < headingText.length) {
+        setTypedHeading(headingText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleBuildSite = () => {
     if (userInput.trim()) {
@@ -53,7 +69,8 @@ const Hero = () => {
           <h1 className="text-5xl md:text-7xl font-bold text-glow leading-tight">
             Make websites{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              without limits
+              {typedHeading}
+              {typedHeading.length < headingText.length && <span className="animate-pulse">|</span>}
             </span>
           </h1>
           

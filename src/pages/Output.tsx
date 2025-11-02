@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const Output = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
   const [inputValue, setInputValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,7 +16,9 @@ const Output = () => {
   const [typedText, setTypedText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const greetingText = "hey, what are we building today?";
+  const greetingText = user && profile?.name 
+    ? `hey ${profile.name}, what are we building today?` 
+    : "hey, what are we building today?";
 
   useEffect(() => {
     if (showGreeting) {
@@ -31,7 +33,7 @@ const Output = () => {
       }, 80);
       return () => clearInterval(timer);
     }
-  }, [showGreeting]);
+  }, [showGreeting, greetingText]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,14 +75,32 @@ const Output = () => {
       // Extract and display only the output field
       const outputText = result.output || 'No response generated';
       
+      // Typewriter effect for AI response
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { 
           role: 'ai' as const, 
-          content: outputText
+          content: ''
         };
         return updated;
       });
+
+      let currentIndex = 0;
+      const typeInterval = setInterval(() => {
+        if (currentIndex < outputText.length) {
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { 
+              role: 'ai' as const, 
+              content: outputText.slice(0, currentIndex + 1)
+            };
+            return updated;
+          });
+          currentIndex++;
+        } else {
+          clearInterval(typeInterval);
+        }
+      }, 10); // Very fast typing speed
       
       toast.success("Response generated successfully!");
     } catch (error) {
@@ -132,64 +152,61 @@ const Output = () => {
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex pt-20">
-        {/* Chat Panel */}
-        <div className="flex-1 flex flex-col bg-background/50 max-w-4xl mx-auto w-full">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {showGreeting && messages.length === 0 && (
-              <div className="flex items-center justify-center h-full">
-                <h1 className="text-4xl font-bold text-primary animate-fade-in">
-                  {typedText}
-                  <span className="animate-pulse">|</span>
-                </h1>
-              </div>
-            )}
-            
-            {messages.map((msg, idx) => (
-              <div key={idx}>
-                {msg.role === 'user' ? (
-                  <div className="flex justify-end mb-4">
-                    <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
-                      <p className="text-foreground font-medium text-base leading-relaxed">{msg.content}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-4">
-                    <div className="prose prose-sm max-w-none">
-                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="p-6 border-t border-border bg-background/80">
-            <div className="flex gap-3 items-end justify-center">
-              <Input
-                placeholder="Describe your website..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                className="w-[70%] h-16 text-base"
-                disabled={isGenerating}
-              />
-              <Button 
-                onClick={handleSend}
-                className="gradient-primary btn-glow border-0 h-16 px-6"
-                disabled={!inputValue.trim() || isGenerating}
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+      {/* Main Content Area - Full Width */}
+      <div className="flex-1 flex flex-col pt-20 pb-32">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full">
+          {showGreeting && messages.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <h1 className="text-4xl font-bold text-primary animate-fade-in">
+                {typedText}
+                <span className="animate-pulse">|</span>
+              </h1>
             </div>
+          )}
+          
+          {messages.map((msg, idx) => (
+            <div key={idx}>
+              {msg.role === 'user' ? (
+                <div className="flex justify-end mb-4">
+                  <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
+                    <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Fixed Input Area at Bottom */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 border-t border-border bg-background/95 backdrop-blur-md">
+          <div className="flex gap-3 items-end justify-center max-w-4xl mx-auto">
+            <Input
+              placeholder="Describe your website..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              className="flex-1 h-16 text-base"
+              disabled={isGenerating}
+            />
+            <Button 
+              onClick={handleSend}
+              className="gradient-primary btn-glow border-0 h-16 px-6"
+              disabled={!inputValue.trim() || isGenerating}
+            >
+              <Send className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SignUp = () => {
@@ -55,6 +55,14 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 px-4">
+      <Button 
+        variant="ghost" 
+        className="absolute top-6 left-6" 
+        onClick={() => navigate("/")}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Home
+      </Button>
       <div className="w-full max-w-md">
         <div className="glass-card rounded-2xl p-8 border border-primary/20">
           <div className="flex justify-center mb-6">
