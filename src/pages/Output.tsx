@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +14,11 @@ const Output = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
   const [typedText, setTypedText] = useState("");
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [userScrolling, setUserScrolling] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const greetingText = user && profile?.name 
     ? `hey ${profile.name}, what are we building today?` 
@@ -36,8 +40,66 @@ const Output = () => {
   }, [showGreeting, greetingText]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolling) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, userScrolling]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!messagesContainerRef.current) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+      
+      setShowScrollButton(!isAtBottom && messages.length > 0);
+      
+      if (isAtBottom) {
+        setUserScrolling(false);
+      }
+    };
+
+    const container = messagesContainerRef.current;
+    container?.addEventListener('scroll', handleScroll);
+    return () => container?.removeEventListener('scroll', handleScroll);
   }, [messages]);
+
+  const scrollToBottom = () => {
+    setUserScrolling(false);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleScrollStart = () => {
+    setUserScrolling(true);
+  };
+
+  const parseMessageContent = (content: string) => {
+    const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/gi;
+    const parts: Array<{ type: 'text' | 'code', content: string }> = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = htmlPattern.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
+      }
+      parts.push({ type: 'code', content: match[0] });
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < content.length) {
+      parts.push({ type: 'text', content: content.slice(lastIndex) });
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'text', content }];
+  };
+
+  const copyToClipboard = async (text: string, index: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    toast.success("Code copied to clipboard!");
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
 
   const handleSend = async () => {
     if (!inputValue.trim() || isGenerating) return;
@@ -47,7 +109,7 @@ const Output = () => {
     const userMessage = { role: 'user' as const, content: inputValue };
     setMessages(prev => [...prev, userMessage]);
     
-    const loadingMessage = { role: 'ai' as const, content: '🔄 Generating your website...' };
+    const loadingMessage = { role: 'ai' as const, content: '...' };
     setMessages(prev => [...prev, loadingMessage]);
     
     setIsGenerating(true);
@@ -99,6 +161,7 @@ const Output = () => {
           currentIndex++;
         } else {
           clearInterval(typeInterval);
+          setUserScrolling(false);
         }
       }, 10); // Very fast typing speed
       
@@ -153,8 +216,13 @@ const Output = () => {
       </nav>
 
       {/* Main Content Area - Full Width */}
-      <div className="flex-1 flex flex-col pt-20 pb-32">
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full">
+      <div className="flex-1 flex flex-col pt-20 pb-32 relative">
+        <div 
+          ref={messagesContainerRef}
+          onWheel={handleScrollStart}
+          onTouchMove={handleScrollStart}
+          className="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full"
+        >
           {showGreeting && messages.length === 0 && (
             <div className="flex items-center justify-center h-full">
               <h1 className="text-4xl font-bold text-primary animate-fade-in">
@@ -174,15 +242,58 @@ const Output = () => {
                 </div>
               ) : (
                 <div className="mb-4">
-                  <div className="prose prose-sm max-w-none">
-                    <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
-                  </div>
+                  {msg.content === '...' ? (
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  ) : (
+                    <div className="prose prose-sm max-w-none">
+                      {parseMessageContent(msg.content).map((part, partIdx) => (
+                        <div key={partIdx}>
+                          {part.type === 'text' ? (
+                            <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal mb-4">{part.content}</p>
+                          ) : (
+                            <div className="relative glass-card bg-muted/50 border border-border/50 rounded-lg p-4 my-4 group">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => copyToClipboard(part.content, partIdx)}
+                              >
+                                {copiedIndex === partIdx ? (
+                                  <Check className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <pre className="text-sm overflow-x-auto">
+                                <code className="text-primary/90 font-mono">{part.content}</code>
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Scroll to Bottom Button */}
+        {showScrollButton && (
+          <Button
+            onClick={scrollToBottom}
+            className="fixed bottom-32 right-8 rounded-full w-12 h-12 shadow-lg gradient-primary btn-glow border-0 z-40"
+            size="icon"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </Button>
+        )}
 
         {/* Fixed Input Area at Bottom */}
         <div className="fixed bottom-0 left-0 right-0 p-6 border-t border-border bg-background/95 backdrop-blur-md">
