@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Send, ArrowDown, Copy, Check } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -99,6 +99,19 @@ const Output = () => {
     setCopiedIndex(index);
     toast.success("Code copied to clipboard!");
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const downloadCode = (code: string) => {
+    const blob = new Blob([code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Code downloaded as index.html!");
   };
 
   const handleSend = async () => {
@@ -256,18 +269,26 @@ const Output = () => {
                             <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal mb-4">{part.content}</p>
                           ) : (
                             <div className="relative glass-card bg-muted/50 border border-border/50 rounded-lg p-4 my-4 group">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => copyToClipboard(part.content, partIdx)}
-                              >
-                                {copiedIndex === partIdx ? (
-                                  <Check className="w-4 h-4 text-green-500" />
-                                ) : (
-                                  <Copy className="w-4 h-4" />
-                                )}
-                              </Button>
+                              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => copyToClipboard(part.content, partIdx)}
+                                >
+                                  {copiedIndex === partIdx ? (
+                                    <Check className="w-4 h-4 text-green-500" />
+                                  ) : (
+                                    <Copy className="w-4 h-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => downloadCode(part.content)}
+                                >
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
                               <pre className="text-sm overflow-x-auto">
                                 <code className="text-primary/90 font-mono">{part.content}</code>
                               </pre>
