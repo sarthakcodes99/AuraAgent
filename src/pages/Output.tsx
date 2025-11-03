@@ -17,6 +17,7 @@ const Output = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [userScrolling, setUserScrolling] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -73,25 +74,20 @@ const Output = () => {
     setUserScrolling(true);
   };
 
-  const parseMessageContent = (content: string) => {
-    const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/gi;
-    const parts: Array<{ type: 'text' | 'code', content: string }> = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = htmlPattern.exec(content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
-      }
-      parts.push({ type: 'code', content: match[0] });
-      lastIndex = match.index + match[0].length;
+  const extractHtmlAndText = (content: string) => {
+    const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/i;
+    const match = content.match(htmlPattern);
+    
+    if (match) {
+      const htmlCode = match[0];
+      const textBefore = content.slice(0, match.index);
+      const textAfter = content.slice(match.index! + htmlCode.length);
+      const textContent = (textBefore + textAfter).trim();
+      
+      return { htmlCode, textContent };
     }
-
-    if (lastIndex < content.length) {
-      parts.push({ type: 'text', content: content.slice(lastIndex) });
-    }
-
-    return parts.length > 0 ? parts : [{ type: 'text', content }];
+    
+    return { htmlCode: null, textContent: content };
   };
 
   const copyToClipboard = async (text: string, index: number) => {
@@ -160,14 +156,24 @@ const Output = () => {
         return updated;
       });
 
+      // Extract HTML code and text
+      const { htmlCode, textContent } = extractHtmlAndText(outputText);
+      
+      // If HTML code exists, update preview
+      if (htmlCode) {
+        setPreviewHtml(htmlCode);
+      }
+      
+      // Typewriter effect for text content only
       let currentIndex = 0;
+      const displayText = textContent || outputText;
       const typeInterval = setInterval(() => {
-        if (currentIndex < outputText.length) {
+        if (currentIndex < displayText.length) {
           setMessages(prev => {
             const updated = [...prev];
             updated[updated.length - 1] = { 
               role: 'ai' as const, 
-              content: outputText.slice(0, currentIndex + 1)
+              content: displayText.slice(0, currentIndex + 1)
             };
             return updated;
           });
@@ -228,118 +234,103 @@ const Output = () => {
         </div>
       </nav>
 
-      {/* Main Content Area - Full Width */}
-      <div className="flex-1 flex flex-col pt-20 pb-32 relative">
-        <div 
-          ref={messagesContainerRef}
-          onWheel={handleScrollStart}
-          onTouchMove={handleScrollStart}
-          className="flex-1 overflow-y-auto p-6 space-y-4 max-w-4xl mx-auto w-full"
-        >
-          {showGreeting && messages.length === 0 && (
-            <div className="flex items-center justify-center h-full">
-              <h1 className="text-4xl font-bold text-primary animate-fade-in">
-                {typedText}
-                <span className="animate-pulse">|</span>
-              </h1>
-            </div>
-          )}
-          
-          {messages.map((msg, idx) => (
-            <div key={idx}>
-              {msg.role === 'user' ? (
-                <div className="flex justify-end mb-4">
-                  <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
-                    <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
+      {/* Main Content Area - Two Sections */}
+      <div className="flex-1 flex pt-20 relative">
+        {/* Left Section - Chat */}
+        <div className="w-1/2 flex flex-col border-r border-border">
+          <div 
+            ref={messagesContainerRef}
+            onWheel={handleScrollStart}
+            onTouchMove={handleScrollStart}
+            className="flex-1 overflow-y-auto p-6 space-y-4"
+          >
+            {showGreeting && messages.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <h1 className="text-4xl font-bold text-primary animate-fade-in">
+                  {typedText}
+                  <span className="animate-pulse">|</span>
+                </h1>
+              </div>
+            )}
+            
+            {messages.map((msg, idx) => (
+              <div key={idx}>
+                {msg.role === 'user' ? (
+                  <div className="flex justify-end mb-4">
+                    <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
+                      <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="mb-4">
-                  {msg.content === '...' ? (
-                    <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                    </div>
-                  ) : (
-                    <div className="prose prose-sm max-w-none">
-                      {parseMessageContent(msg.content).map((part, partIdx) => (
-                        <div key={partIdx}>
-                          {part.type === 'text' ? (
-                            <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal mb-4">{part.content}</p>
-                          ) : (
-                            <div className="relative glass-card bg-muted/50 border border-border/50 rounded-lg p-4 my-4 group">
-                              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => copyToClipboard(part.content, partIdx)}
-                                >
-                                  {copiedIndex === partIdx ? (
-                                    <Check className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <Copy className="w-4 h-4" />
-                                  )}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => downloadCode(part.content)}
-                                >
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              <pre className="text-sm overflow-x-auto">
-                                <code className="text-primary/90 font-mono">{part.content}</code>
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                ) : (
+                  <div className="mb-4">
+                    {msg.content === '...' ? (
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
+                    ) : (
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Scroll to Bottom Button */}
+          {showScrollButton && (
+            <Button
+              onClick={scrollToBottom}
+              className="absolute bottom-32 left-[calc(25%-24px)] rounded-full w-12 h-12 shadow-lg gradient-primary btn-glow border-0 z-40"
+              size="icon"
+            >
+              <ArrowDown className="w-5 h-5" />
+            </Button>
+          )}
+
+          {/* Fixed Input Area at Bottom of Chat Section */}
+          <div className="p-6 border-t border-border bg-background/95 backdrop-blur-md">
+            <div className="flex gap-3 items-end">
+              <Input
+                placeholder="Describe your website..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                className="flex-1 h-16 text-base"
+                disabled={isGenerating}
+              />
+              <Button 
+                onClick={handleSend}
+                className="gradient-primary btn-glow border-0 h-16 px-6"
+                disabled={!inputValue.trim() || isGenerating}
+              >
+                <Send className="w-5 h-5" />
+              </Button>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        {/* Scroll to Bottom Button */}
-        {showScrollButton && (
-          <Button
-            onClick={scrollToBottom}
-            className="fixed bottom-32 right-8 rounded-full w-12 h-12 shadow-lg gradient-primary btn-glow border-0 z-40"
-            size="icon"
-          >
-            <ArrowDown className="w-5 h-5" />
-          </Button>
-        )}
-
-        {/* Fixed Input Area at Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-6 border-t border-border bg-background/95 backdrop-blur-md">
-          <div className="flex gap-3 items-end justify-center max-w-4xl mx-auto">
-            <Input
-              placeholder="Describe your website..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              className="flex-1 h-16 text-base"
-              disabled={isGenerating}
+        {/* Right Section - Preview */}
+        <div className="w-1/2 flex flex-col bg-muted/20">
+          {previewHtml ? (
+            <iframe
+              srcDoc={previewHtml}
+              className="w-full h-full border-0"
+              title="Website Preview"
+              sandbox="allow-scripts allow-same-origin"
             />
-            <Button 
-              onClick={handleSend}
-              className="gradient-primary btn-glow border-0 h-16 px-6"
-              disabled={!inputValue.trim() || isGenerating}
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              <p className="text-lg">Preview will appear here</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
