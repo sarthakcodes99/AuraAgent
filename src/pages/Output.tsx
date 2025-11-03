@@ -237,7 +237,7 @@ const Output = () => {
       {/* Main Content Area - Two Sections */}
       <div className="flex-1 flex pt-20 relative">
         {/* Left Section - Chat */}
-        <div className="w-1/2 flex flex-col border-r border-border">
+        <div className="w-1/5 flex flex-col border-r border-border">
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -283,7 +283,7 @@ const Output = () => {
           {showScrollButton && (
             <Button
               onClick={scrollToBottom}
-              className="absolute bottom-32 left-[calc(25%-24px)] rounded-full w-12 h-12 shadow-lg gradient-primary btn-glow border-0 z-40"
+              className="absolute bottom-32 left-[calc(10%-24px)] rounded-full w-12 h-12 shadow-lg gradient-primary btn-glow border-0 z-40"
               size="icon"
             >
               <ArrowDown className="w-5 h-5" />
@@ -318,7 +318,7 @@ const Output = () => {
         </div>
 
         {/* Right Section - Preview */}
-        <div className="w-1/2 flex flex-col bg-muted/20">
+        <div className="w-4/5 flex flex-col bg-muted/20">
           {previewHtml ? (
             <iframe
               srcDoc={previewHtml}
