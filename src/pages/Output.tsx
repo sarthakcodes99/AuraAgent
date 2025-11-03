@@ -18,6 +18,7 @@ const Output = () => {
   const [userScrolling, setUserScrolling] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -75,19 +76,65 @@ const Output = () => {
   };
 
   const extractHtmlAndText = (content: string) => {
-    const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/i;
-    const match = content.match(htmlPattern);
+    // Extract HTML files
+    const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/gi;
+    const htmlMatches = content.match(htmlPattern) || [];
     
-    if (match) {
-      const htmlCode = match[0];
-      const textBefore = content.slice(0, match.index);
-      const textAfter = content.slice(match.index! + htmlCode.length);
-      const textContent = (textBefore + textAfter).trim();
+    // Extract CSS code blocks
+    const cssPattern = /```css\n([\s\S]*?)```/gi;
+    const cssMatches = [...content.matchAll(cssPattern)].map(m => m[1]);
+    
+    // Extract JavaScript code blocks
+    const jsPattern = /```(?:javascript|js)\n([\s\S]*?)```/gi;
+    const jsMatches = [...content.matchAll(jsPattern)].map(m => m[1]);
+    
+    if (htmlMatches.length > 0) {
+      let mainHtml = htmlMatches[0];
       
-      return { htmlCode, textContent };
+      // Inject CSS into HTML
+      if (cssMatches.length > 0) {
+        const cssContent = cssMatches.join('\n');
+        const styleTag = `<style>\n${cssContent}\n</style>`;
+        
+        if (mainHtml.includes('</head>')) {
+          mainHtml = mainHtml.replace('</head>', `${styleTag}\n</head>`);
+        } else {
+          mainHtml = mainHtml.replace('<html>', `<html>\n<head>${styleTag}</head>`);
+        }
+      }
+      
+      // Inject JS into HTML
+      if (jsMatches.length > 0) {
+        const jsContent = jsMatches.join('\n');
+        const scriptTag = `<script>\n${jsContent}\n</script>`;
+        
+        if (mainHtml.includes('</body>')) {
+          mainHtml = mainHtml.replace('</body>', `${scriptTag}\n</body>`);
+        } else {
+          mainHtml = mainHtml.replace('</html>', `${scriptTag}\n</html>`);
+        }
+      }
+      
+      // Remove code blocks and HTML from text content
+      let textContent = content;
+      htmlMatches.forEach(html => {
+        textContent = textContent.replace(html, '');
+      });
+      textContent = textContent.replace(/```(?:css|javascript|js|html)\n[\s\S]*?```/gi, '');
+      textContent = textContent.trim();
+      
+      return { 
+        htmlCode: mainHtml, 
+        textContent,
+        allCode: {
+          html: htmlMatches,
+          css: cssMatches,
+          js: jsMatches
+        }
+      };
     }
     
-    return { htmlCode: null, textContent: content };
+    return { htmlCode: null, textContent: content, allCode: null };
   };
 
   const copyToClipboard = async (text: string, index: number) => {
@@ -97,17 +144,52 @@ const Output = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const downloadCode = (code: string) => {
+  const downloadCode = (code: string, filename: string = 'index.html') => {
     const blob = new Blob([code], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'index.html';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Code downloaded as index.html!");
+    toast.success(`Code downloaded as ${filename}!`);
+  };
+
+  const downloadAllCode = () => {
+    if (currentCode) {
+      // Download combined HTML with embedded CSS and JS
+      downloadCode(previewHtml, 'website.html');
+      
+      // Download separate CSS files
+      currentCode.css.forEach((css, idx) => {
+        const blob = new Blob([css], { type: 'text/css' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `style${idx > 0 ? idx + 1 : ''}.css`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+      
+      // Download separate JS files
+      currentCode.js.forEach((js, idx) => {
+        const blob = new Blob([js], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `script${idx > 0 ? idx + 1 : ''}.js`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+      
+      toast.success("All code files downloaded!");
+    }
   };
 
   const handleSend = async () => {
@@ -157,11 +239,14 @@ const Output = () => {
       });
 
       // Extract HTML code and text
-      const { htmlCode, textContent } = extractHtmlAndText(outputText);
+      const { htmlCode, textContent, allCode } = extractHtmlAndText(outputText);
       
       // If HTML code exists, update preview
       if (htmlCode) {
         setPreviewHtml(htmlCode);
+        if (allCode) {
+          setCurrentCode(allCode);
+        }
       }
       
       // Typewriter effect for text content only
@@ -261,7 +346,7 @@ const Output = () => {
                       <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
                     </div>
                   </div>
-                ) : (
+                 ) : (
                   <div className="mb-4">
                     {msg.content === '...' ? (
                       <div className="flex items-center gap-1">
@@ -270,7 +355,31 @@ const Output = () => {
                         <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                       </div>
                     ) : (
-                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
+                      <>
+                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
+                        {idx === messages.length - 1 && currentCode && (
+                          <div className="mt-4 flex gap-2">
+                            <Button
+                              onClick={() => copyToClipboard(previewHtml, idx)}
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                            >
+                              {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                              Copy Code
+                            </Button>
+                            <Button
+                              onClick={downloadAllCode}
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download All
+                            </Button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
