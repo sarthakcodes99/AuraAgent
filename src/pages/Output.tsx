@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Send, ArrowDown, Copy, Check, Download } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const Output = () => {
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const greetingText = user && profile?.name 
     ? `hey ${profile.name}, what are we building today?` 
@@ -192,6 +193,14 @@ const Output = () => {
     }
   };
 
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsGenerating(false);
+      toast.info("Generation stopped");
+    }
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim() || isGenerating) return;
     
@@ -207,6 +216,9 @@ const Output = () => {
     const currentInput = inputValue;
     setInputValue("");
 
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
     try {
       const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook-test/e0d53415-462c-4b12-bd13-07cf1a032de9', {
         method: 'POST',
@@ -216,7 +228,8 @@ const Output = () => {
         body: JSON.stringify({
           prompt: currentInput,
           user_id: user?.id || 'anonymous'
-        })
+        }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.ok) throw new Error('Generation failed');
@@ -270,19 +283,33 @@ const Output = () => {
       }, 10); // Very fast typing speed
       
       toast.success("Response generated successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Generation error:', error);
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { 
-          role: 'ai' as const, 
-          content: '❌ Generation failed, please try again' 
-        };
-        return updated;
-      });
-      toast.error("Failed to generate website");
+      
+      // Check if the error was due to abort
+      if (error.name === 'AbortError') {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { 
+            role: 'ai' as const, 
+            content: '⏹️ Generation stopped by user' 
+          };
+          return updated;
+        });
+      } else {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { 
+            role: 'ai' as const, 
+            content: '❌ Generation failed, please try again' 
+          };
+          return updated;
+        });
+        toast.error("Failed to generate website");
+      }
     } finally {
       setIsGenerating(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -409,19 +436,30 @@ const Output = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    handleSend();
+                    if (!isGenerating) {
+                      handleSend();
+                    }
                   }
                 }}
                 className="flex-1 h-16 text-base"
                 disabled={isGenerating}
               />
-              <Button 
-                onClick={handleSend}
-                className="gradient-primary btn-glow border-0 h-16 px-6"
-                disabled={!inputValue.trim() || isGenerating}
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+              {isGenerating ? (
+                <Button 
+                  onClick={handleStop}
+                  className="bg-destructive hover:bg-destructive/90 border-0 h-16 px-6"
+                >
+                  <Square className="w-5 h-5" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleSend}
+                  className="gradient-primary btn-glow border-0 h-16 px-6"
+                  disabled={!inputValue.trim()}
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
