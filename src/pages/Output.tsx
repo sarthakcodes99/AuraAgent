@@ -202,7 +202,7 @@ const Output = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-6 py-4">
@@ -235,9 +235,9 @@ const Output = () => {
       </nav>
 
       {/* Main Content Area - Two Sections */}
-      <div className="flex-1 flex pt-20 relative">
+      <div className="flex-1 flex pt-20 overflow-hidden">
         {/* Left Section - Chat */}
-        <div className="w-1/5 flex flex-col border-r border-border">
+        <div className="w-1/5 h-full flex flex-col border-r border-border overflow-hidden">
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -318,13 +318,13 @@ const Output = () => {
         </div>
 
         {/* Right Section - Preview */}
-        <div className="w-4/5 flex flex-col bg-muted/20">
+        <div className="w-4/5 h-full flex flex-col bg-muted/20 overflow-hidden">
           {previewHtml ? (
             <iframe
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-scripts"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
