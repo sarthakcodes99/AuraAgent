@@ -93,7 +93,7 @@ const Output = () => {
   };
 
   const extractHtmlAndText = (content: string) => {
-    // Extract HTML files
+    // Extract HTML files (from <!DOCTYPE html> to </html>)
     const htmlPattern = /<!DOCTYPE html>[\s\S]*?<\/html>/gi;
     const htmlMatches = content.match(htmlPattern) || [];
     
@@ -104,6 +104,10 @@ const Output = () => {
     // Extract JavaScript code blocks
     const jsPattern = /```(?:javascript|js)\n([\s\S]*?)```/gi;
     const jsMatches = [...content.matchAll(jsPattern)].map(m => m[1]);
+    
+    // Extract HTML code blocks
+    const htmlBlockPattern = /```html\n([\s\S]*?)```/gi;
+    const htmlBlockMatches = [...content.matchAll(htmlBlockPattern)].map(m => m[1]);
     
     if (htmlMatches.length > 0) {
       let mainHtml = htmlMatches[0];
@@ -132,13 +136,19 @@ const Output = () => {
         }
       }
       
-      // Remove code blocks and HTML from text content
+      // Remove ALL code from text content - HTML blocks, CSS blocks, JS blocks, and raw HTML
       let textContent = content;
+      
+      // Remove all HTML code (from <!DOCTYPE html> to </html>)
       htmlMatches.forEach(html => {
         textContent = textContent.replace(html, '');
       });
+      
+      // Remove all code blocks (css, js, html, javascript)
       textContent = textContent.replace(/```(?:css|javascript|js|html)\n[\s\S]*?```/gi, '');
-      textContent = textContent.trim();
+      
+      // Clean up extra whitespace and newlines
+      textContent = textContent.replace(/\n{3,}/g, '\n\n').trim();
       
       return { 
         htmlCode: mainHtml, 
