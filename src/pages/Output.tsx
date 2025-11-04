@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,7 @@ const Output = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
+  const [isChatVisible, setIsChatVisible] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -347,9 +348,9 @@ const Output = () => {
       </nav>
 
       {/* Main Content Area - Two Sections */}
-      <div className="flex-1 flex pt-20 overflow-hidden">
+      <div className="flex-1 flex pt-20 overflow-hidden relative">
         {/* Left Section - Chat */}
-        <div className="w-1/5 h-full flex flex-col border-r border-border overflow-hidden">
+        <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -465,7 +466,16 @@ const Output = () => {
         </div>
 
         {/* Right Section - Preview */}
-        <div className="w-4/5 h-full flex flex-col bg-muted/20 overflow-hidden">
+        <div className={`h-full flex flex-col bg-muted/20 overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-4/5' : 'w-full'}`}>
+          {/* Toggle Chat Button */}
+          <Button
+            onClick={() => setIsChatVisible(!isChatVisible)}
+            className="absolute top-4 left-4 z-50 rounded-full w-10 h-10 shadow-lg gradient-primary btn-glow border-0"
+            size="icon"
+          >
+            {isChatVisible ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+          </Button>
+          
           {previewHtml ? (
             <iframe
               srcDoc={previewHtml}
