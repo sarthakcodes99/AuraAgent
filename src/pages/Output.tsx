@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, ChevronLeft, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const Output = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut, profile } = useAuth();
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
   const [inputValue, setInputValue] = useState("");
@@ -23,10 +24,24 @@ const Output = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const initialInputProcessed = useRef(false);
 
   const greetingText = user && profile?.name 
     ? `hey ${profile.name}, what are we building today?` 
     : "hey, what are we building today?";
+
+  // Handle initial input from main page
+  useEffect(() => {
+    const initialInput = location.state?.userInput;
+    if (initialInput && !initialInputProcessed.current) {
+      initialInputProcessed.current = true;
+      setInputValue(initialInput);
+      // Automatically send the initial input
+      setTimeout(() => {
+        handleSendWithInput(initialInput);
+      }, 500);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (showGreeting) {
@@ -202,19 +217,18 @@ const Output = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim() || isGenerating) return;
+  const handleSendWithInput = async (input: string) => {
+    if (!input.trim() || isGenerating) return;
     
     setShowGreeting(false);
     
-    const userMessage = { role: 'user' as const, content: inputValue };
+    const userMessage = { role: 'user' as const, content: input };
     setMessages(prev => [...prev, userMessage]);
     
     const loadingMessage = { role: 'ai' as const, content: '...' };
     setMessages(prev => [...prev, loadingMessage]);
     
     setIsGenerating(true);
-    const currentInput = inputValue;
     setInputValue("");
 
     // Create new AbortController for this request
@@ -227,7 +241,7 @@ const Output = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: currentInput,
+          prompt: input,
           user_id: user?.id || 'anonymous'
         }),
         signal: abortControllerRef.current.signal
@@ -312,6 +326,11 @@ const Output = () => {
       setIsGenerating(false);
       abortControllerRef.current = null;
     }
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isGenerating) return;
+    await handleSendWithInput(inputValue);
   };
 
   return (
