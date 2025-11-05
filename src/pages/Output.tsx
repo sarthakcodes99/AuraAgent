@@ -245,7 +245,7 @@ const Output = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook-test/e0d53415-462c-4b12-bd13-07cf1a032de9', {
+      const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook/e0d53415-462c-4b12-bd13-07cf1a032de9', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
