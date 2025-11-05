@@ -245,14 +245,27 @@ const Output = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook/e0d53415-462c-4b12-bd13-07cf1a032de9', {
+      // Prepare messages history for the AI
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      // Add current user message
+      conversationHistory.push({
+        role: 'user',
+        content: input
+      });
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-website`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           prompt: input,
-          user_id: user?.id || 'anonymous'
+          messages: conversationHistory
         }),
         signal: abortControllerRef.current.signal
       });
