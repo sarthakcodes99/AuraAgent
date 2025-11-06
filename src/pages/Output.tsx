@@ -396,13 +396,18 @@ const Output = () => {
         <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
           {/* Hover Edge for Expand/Collapse */}
           <div 
-            className="absolute top-0 right-0 w-4 h-full z-50 cursor-col-resize hover:bg-primary/10"
+            className="absolute top-0 -right-2 w-4 h-full z-50 cursor-col-resize hover:bg-primary/10 select-none"
             onMouseEnter={() => setIsHoveringEdge(true)}
             onMouseLeave={() => setIsHoveringEdge(false)}
-            onClick={() => setIsChatVisible(!isChatVisible)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsChatVisible(!isChatVisible);
+            }}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
           >
             {isHoveringEdge && (
-              <div className="absolute top-1/2 -translate-y-1/2 right-0 bg-primary/90 rounded-l-md p-1 shadow-lg animate-fade-in">
+              <div className="absolute top-1/2 -translate-y-1/2 right-0 bg-primary/90 rounded-l-md p-1 shadow-lg animate-fade-in pointer-events-none">
                 {isChatVisible ? (
                   <ChevronLeft className="w-4 h-4 text-primary-foreground" />
                 ) : (
