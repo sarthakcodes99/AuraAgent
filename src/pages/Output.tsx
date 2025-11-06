@@ -137,16 +137,16 @@ const Output = () => {
         }
       }
       
-      // Remove ALL code from text content - HTML blocks, CSS blocks, JS blocks, and raw HTML
+      // Remove ALL code from text content - First remove markdown code blocks, then raw HTML
       let textContent = content;
       
-      // Remove all HTML code (from <!DOCTYPE html> to </html>)
+      // Remove all markdown code blocks first (this includes the ``` markers)
+      textContent = textContent.replace(/```(?:css|javascript|js|html)\n[\s\S]*?```/gi, '');
+      
+      // Remove any remaining raw HTML (in case there's HTML outside code blocks)
       htmlMatches.forEach(html => {
         textContent = textContent.replace(html, '');
       });
-      
-      // Remove all code blocks (css, js, html, javascript)
-      textContent = textContent.replace(/```(?:css|javascript|js|html)\n[\s\S]*?```/gi, '');
       
       // Clean up extra whitespace and newlines
       textContent = textContent.replace(/\n{3,}/g, '\n\n').trim();
