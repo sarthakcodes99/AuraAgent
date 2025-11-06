@@ -21,6 +21,7 @@ const Output = () => {
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isHoveringEdge, setIsHoveringEdge] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -392,7 +393,24 @@ const Output = () => {
       {/* Main Content Area - Two Sections */}
       <div className="flex-1 flex pt-20 overflow-hidden relative">
         {/* Left Section - Chat */}
-        <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
+        <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
+          {/* Hover Edge for Expand/Collapse */}
+          <div 
+            className="absolute top-0 right-0 w-4 h-full z-50 cursor-col-resize hover:bg-primary/10"
+            onMouseEnter={() => setIsHoveringEdge(true)}
+            onMouseLeave={() => setIsHoveringEdge(false)}
+            onClick={() => setIsChatVisible(!isChatVisible)}
+          >
+            {isHoveringEdge && (
+              <div className="absolute top-1/2 -translate-y-1/2 right-0 bg-primary/90 rounded-l-md p-1 shadow-lg animate-fade-in">
+                {isChatVisible ? (
+                  <ChevronLeft className="w-4 h-4 text-primary-foreground" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-primary-foreground" />
+                )}
+              </div>
+            )}
+          </div>
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -509,15 +527,6 @@ const Output = () => {
 
         {/* Right Section - Preview */}
         <div className={`h-full flex flex-col bg-muted/20 overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-4/5' : 'w-full'}`}>
-          {/* Toggle Chat Button */}
-          <Button
-            onClick={() => setIsChatVisible(!isChatVisible)}
-            className="absolute top-4 left-4 z-50 rounded-full w-10 h-10 shadow-lg gradient-primary btn-glow border-0"
-            size="icon"
-          >
-            {isChatVisible ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          </Button>
-          
           {previewHtml ? (
             <iframe
               srcDoc={previewHtml}
