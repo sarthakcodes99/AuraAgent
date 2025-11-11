@@ -10,7 +10,7 @@ const Output = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, profile } = useAuth();
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'ai', content: string, timestamp?: Date }>>([]);
   const [inputValue, setInputValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
@@ -233,7 +233,7 @@ const Output = () => {
     
     setShowGreeting(false);
     
-    const userMessage = { role: 'user' as const, content: input };
+    const userMessage = { role: 'user' as const, content: input, timestamp: new Date() };
     setMessages(prev => [...prev, userMessage]);
     
     const loadingMessage = { role: 'ai' as const, content: '...' };
@@ -318,6 +318,7 @@ const Output = () => {
         } else {
           clearInterval(typeInterval);
           setUserScrolling(false);
+          setIsGenerating(false);
         }
       }, 10); // Very fast typing speed
       
@@ -346,8 +347,8 @@ const Output = () => {
         });
         toast.error("Failed to generate website");
       }
-    } finally {
       setIsGenerating(false);
+    } finally {
       abortControllerRef.current = null;
     }
   };
@@ -435,8 +436,25 @@ const Output = () => {
               <div key={idx}>
                 {msg.role === 'user' ? (
                   <div className="flex justify-end mb-4">
-                    <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl max-w-[80%]">
-                      <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
+                    <div className="max-w-[80%]">
+                      <div className="glass-card bg-primary/20 border-primary/30 p-4 rounded-2xl">
+                        <p className="text-foreground font-semibold text-lg leading-relaxed tracking-wide" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}>{msg.content}</p>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2 justify-end">
+                        <Button
+                          onClick={() => copyToClipboard(msg.content, idx)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          {copiedIndex === idx ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        </Button>
+                        {msg.timestamp && (
+                          <span className="text-xs text-muted-foreground">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                  ) : (
