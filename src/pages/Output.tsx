@@ -25,6 +25,7 @@ const Output = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const typewriterIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const initialInputProcessed = useRef(false);
 
   const greetingText = user && profile?.name 
@@ -223,9 +224,13 @@ const Output = () => {
   const handleStop = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      setIsGenerating(false);
-      toast.info("Generation stopped");
     }
+    if (typewriterIntervalRef.current) {
+      clearInterval(typewriterIntervalRef.current);
+      typewriterIntervalRef.current = null;
+    }
+    setIsGenerating(false);
+    toast.info("Generation stopped");
   };
 
   const handleSendWithInput = async (input: string) => {
@@ -304,7 +309,7 @@ const Output = () => {
       // Typewriter effect for text content only
       let currentIndex = 0;
       const displayText = textContent || outputText;
-      const typeInterval = setInterval(() => {
+      typewriterIntervalRef.current = setInterval(() => {
         if (currentIndex < displayText.length) {
           setMessages(prev => {
             const updated = [...prev];
@@ -316,7 +321,10 @@ const Output = () => {
           });
           currentIndex++;
         } else {
-          clearInterval(typeInterval);
+          if (typewriterIntervalRef.current) {
+            clearInterval(typewriterIntervalRef.current);
+            typewriterIntervalRef.current = null;
+          }
           setUserScrolling(false);
           setIsGenerating(false);
         }
