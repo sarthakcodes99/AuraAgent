@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
@@ -508,7 +508,7 @@ const Output = () => {
           {/* Fixed Input Area at Bottom of Chat Section */}
           <div className="p-6 border-t border-border bg-background/95 backdrop-blur-md">
             <div className="flex gap-3 items-end">
-              <Input
+              <Textarea
                 placeholder="Describe your website..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -520,21 +520,29 @@ const Output = () => {
                     }
                   }
                 }}
-                className="flex-1 h-16 text-base"
+                className="flex-1 min-h-[3rem] max-h-[200px] resize-none text-base"
                 disabled={isGenerating}
+                rows={1}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+                }}
               />
               {isGenerating ? (
                 <Button 
                   onClick={handleStop}
-                  className="bg-destructive hover:bg-destructive/90 border-0 h-16 px-6"
+                  className="bg-destructive hover:bg-destructive/90 border-0 px-6"
+                  size="icon"
                 >
                   <Square className="w-5 h-5" />
                 </Button>
               ) : (
                 <Button 
                   onClick={handleSend}
-                  className="gradient-primary btn-glow border-0 h-16 px-6"
+                  className="gradient-primary btn-glow border-0 px-6"
                   disabled={!inputValue.trim()}
+                  size="icon"
                 >
                   <Send className="w-5 h-5" />
                 </Button>
