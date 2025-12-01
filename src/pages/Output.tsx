@@ -21,6 +21,8 @@ const Output = () => {
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [chatWidth, setChatWidth] = useState(20); // percentage
+  const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -92,6 +94,35 @@ const Output = () => {
   const handleScrollStart = () => {
     setUserScrolling(true);
   };
+
+  const handleMouseDown = () => {
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const newWidth = (e.clientX / window.innerWidth) * 100;
+      if (newWidth >= 15 && newWidth <= 50) {
+        setChatWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   const extractHtmlAndText = (content: string) => {
     // Extract HTML files (from <!DOCTYPE html> to </html>)
@@ -399,7 +430,10 @@ const Output = () => {
       {/* Main Content Area - Two Sections */}
       <div className="flex-1 flex pt-20 overflow-hidden relative">
         {/* Left Section - Chat */}
-        <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
+        <div 
+          className={`h-full flex flex-col border-r border-border overflow-hidden relative ${isChatVisible ? '' : 'w-0'}`}
+          style={{ width: isChatVisible ? `${chatWidth}%` : '0', transition: isChatVisible ? 'none' : 'width 0.3s ease-in-out' }}
+        >
           {/* Toggle Button - Always Visible */}
           <Button
             onClick={() => setIsChatVisible(!isChatVisible)}
@@ -412,6 +446,18 @@ const Output = () => {
               <ChevronRight className="w-5 h-5 text-primary-foreground" />
             )}
           </Button>
+          
+          {/* Resize Handle */}
+          {isChatVisible && (
+            <div
+              onMouseDown={handleMouseDown}
+              className="absolute top-0 -right-1 w-2 h-full cursor-col-resize hover:bg-primary/30 z-40 group"
+            >
+              <div className="absolute top-1/2 -translate-y-1/2 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-1 h-12 bg-primary/50 rounded-full" />
+              </div>
+            </div>
+          )}
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -552,7 +598,10 @@ const Output = () => {
         </div>
 
         {/* Right Section - Preview */}
-        <div className={`h-full flex flex-col bg-muted/20 overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-4/5' : 'w-full'}`}>
+        <div 
+          className="h-full flex flex-col bg-muted/20 overflow-hidden relative"
+          style={{ width: isChatVisible ? `${100 - chatWidth}%` : '100%', transition: isChatVisible ? 'none' : 'width 0.3s ease-in-out' }}
+        >
           {previewHtml ? (
             <iframe
               srcDoc={previewHtml}
