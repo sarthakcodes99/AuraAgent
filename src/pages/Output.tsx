@@ -20,7 +20,6 @@ const Output = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
-  const [isChatVisible, setIsChatVisible] = useState(true);
   const [chatWidth, setChatWidth] = useState(20); // percentage
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -104,7 +103,7 @@ const Output = () => {
       if (!isResizing) return;
       
       const newWidth = (e.clientX / window.innerWidth) * 100;
-      if (newWidth >= 15 && newWidth <= 50) {
+      if (newWidth >= 0 && newWidth <= 50) {
         setChatWidth(newWidth);
       }
     };
@@ -431,33 +430,18 @@ const Output = () => {
       <div className="flex-1 flex pt-20 overflow-hidden relative">
         {/* Left Section - Chat */}
         <div 
-          className={`h-full flex flex-col border-r border-border overflow-hidden relative ${isChatVisible ? '' : 'w-0'}`}
-          style={{ width: isChatVisible ? `${chatWidth}%` : '0', transition: isChatVisible ? 'none' : 'width 0.3s ease-in-out' }}
+          className="h-full flex flex-col border-r border-border overflow-hidden relative"
+          style={{ width: `${chatWidth}%` }}
         >
-          {/* Toggle Button - Always Visible */}
-          <Button
-            onClick={() => setIsChatVisible(!isChatVisible)}
-            className="absolute top-1/2 -translate-y-1/2 -right-4 z-50 h-16 w-8 rounded-l-lg rounded-r-lg bg-primary/90 hover:bg-primary p-0 shadow-lg border-0"
-            size="icon"
-          >
-            {isChatVisible ? (
-              <ChevronLeft className="w-5 h-5 text-primary-foreground" />
-            ) : (
-              <ChevronRight className="w-5 h-5 text-primary-foreground" />
-            )}
-          </Button>
-          
           {/* Resize Handle */}
-          {isChatVisible && (
-            <div
-              onMouseDown={handleMouseDown}
-              className="absolute top-0 -right-1 w-2 h-full cursor-col-resize hover:bg-primary/30 z-40 group"
-            >
-              <div className="absolute top-1/2 -translate-y-1/2 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-1 h-12 bg-primary/50 rounded-full" />
-              </div>
+          <div
+            onMouseDown={handleMouseDown}
+            className="absolute top-0 -right-1 w-2 h-full cursor-col-resize hover:bg-primary/30 z-40 group"
+          >
+            <div className="absolute top-1/2 -translate-y-1/2 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="w-1 h-12 bg-primary/50 rounded-full" />
             </div>
-          )}
+          </div>
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
@@ -600,7 +584,7 @@ const Output = () => {
         {/* Right Section - Preview */}
         <div 
           className="h-full flex flex-col bg-muted/20 overflow-hidden relative"
-          style={{ width: isChatVisible ? `${100 - chatWidth}%` : '100%', transition: isChatVisible ? 'none' : 'width 0.3s ease-in-out' }}
+          style={{ width: `${100 - chatWidth}%` }}
         >
           {previewHtml ? (
             <iframe
