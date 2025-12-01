@@ -21,7 +21,6 @@ const Output = () => {
   const [previewHtml, setPreviewHtml] = useState<string>("");
   const [currentCode, setCurrentCode] = useState<{html: string[], css: string[], js: string[]} | null>(null);
   const [isChatVisible, setIsChatVisible] = useState(true);
-  const [isHoveringEdge, setIsHoveringEdge] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -401,28 +400,18 @@ const Output = () => {
       <div className="flex-1 flex pt-20 overflow-hidden relative">
         {/* Left Section - Chat */}
         <div className={`h-full flex flex-col border-r border-border overflow-hidden transition-all duration-300 ease-in-out relative ${isChatVisible ? 'w-1/5' : 'w-0'}`}>
-          {/* Hover Edge for Expand/Collapse */}
-          <div 
-            className="absolute top-0 -right-2 w-4 h-full z-50 cursor-col-resize hover:bg-primary/10 select-none"
-            onMouseEnter={() => setIsHoveringEdge(true)}
-            onMouseLeave={() => setIsHoveringEdge(false)}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsChatVisible(!isChatVisible);
-            }}
-            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+          {/* Toggle Button - Always Visible */}
+          <Button
+            onClick={() => setIsChatVisible(!isChatVisible)}
+            className="absolute top-1/2 -translate-y-1/2 -right-4 z-50 h-16 w-8 rounded-l-lg rounded-r-lg bg-primary/90 hover:bg-primary p-0 shadow-lg border-0"
+            size="icon"
           >
-            {isHoveringEdge && (
-              <div className="absolute top-1/2 -translate-y-1/2 right-0 bg-primary/90 rounded-l-md p-1 shadow-lg animate-fade-in pointer-events-none">
-                {isChatVisible ? (
-                  <ChevronLeft className="w-4 h-4 text-primary-foreground" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-primary-foreground" />
-                )}
-              </div>
+            {isChatVisible ? (
+              <ChevronLeft className="w-5 h-5 text-primary-foreground" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-primary-foreground" />
             )}
-          </div>
+          </Button>
           <div 
             ref={messagesContainerRef}
             onWheel={handleScrollStart}
