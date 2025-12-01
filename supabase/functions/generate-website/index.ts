@@ -17,7 +17,7 @@ serve(async (req) => {
     // Build the prompt for n8n webhook
     const userMessage = prompt || (messages && messages[messages.length - 1]?.content) || '';
 
-    const response = await fetch('https://sarthak12345.app.n8n.cloud/webhook-test/e0d53415-462c-4b12-bd13-07cf1a032de9', {
+    const response = await fetch('https://sarthak9900.app.n8n.cloud/webhook-test/b5bb33b2-77cd-4d3f-9058-ae55125c1c40', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
