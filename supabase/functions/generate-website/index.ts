@@ -17,6 +17,8 @@ serve(async (req) => {
     // Build the prompt for n8n webhook
     const userMessage = prompt || (messages && messages[messages.length - 1]?.content) || '';
 
+    console.log('Sending to n8n webhook:', { prompt: userMessage, messagesCount: messages?.length });
+
     const response = await fetch('https://sarthak9900.app.n8n.cloud/webhook/b5bb33b2-77cd-4d3f-9058-ae55125c1c40', {
       method: 'POST',
       headers: {
@@ -28,13 +30,37 @@ serve(async (req) => {
       }),
     });
 
+    console.log('n8n response status:', response.status);
+
     if (!response.ok) {
       const error = await response.text();
       console.error('n8n webhook error:', error);
-      throw new Error(`n8n webhook error: ${response.status}`);
+      throw new Error(`n8n webhook error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json();
+    const responseText = await response.text();
+    console.log('n8n response text length:', responseText.length);
+    console.log('n8n response preview:', responseText.substring(0, 200));
+
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('n8n webhook returned empty response');
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse JSON response:', parseError);
+      // If it's not JSON, treat the response text as the output directly
+      return new Response(
+        JSON.stringify({ output: responseText }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
+    }
+
     const output = data.output || data.response || data.content || JSON.stringify(data);
 
     return new Response(
