@@ -536,8 +536,8 @@ const Output = () => {
           )}
 
           {/* Fixed Input Area at Bottom of Chat Section */}
-          <div className="p-6 border-t border-border bg-background/95 backdrop-blur-md">
-            <div className="flex gap-3 items-end">
+          <div className="p-6 border-t border-border bg-background/95 backdrop-blur-md min-w-0">
+            <div className="flex gap-3 items-end min-w-0">
               <Textarea
                 placeholder="Describe your website..."
                 value={inputValue}
@@ -550,7 +550,7 @@ const Output = () => {
                     }
                   }
                 }}
-                className="flex-1 min-h-[3rem] max-h-[200px] resize-none text-base"
+                className="flex-1 min-h-[3rem] max-h-[200px] resize-none text-base min-w-0"
                 disabled={isGenerating}
                 rows={1}
                 onInput={(e) => {
@@ -562,7 +562,7 @@ const Output = () => {
               {isGenerating ? (
                 <Button 
                   onClick={handleStop}
-                  className="bg-destructive hover:bg-destructive/90 border-0 px-6"
+                  className="bg-destructive hover:bg-destructive/90 border-0 shrink-0"
                   size="icon"
                 >
                   <Square className="w-5 h-5" />
@@ -570,7 +570,7 @@ const Output = () => {
               ) : (
                 <Button 
                   onClick={handleSend}
-                  className="gradient-primary btn-glow border-0 px-6"
+                  className="gradient-primary btn-glow border-0 shrink-0"
                   disabled={!inputValue.trim()}
                   size="icon"
                 >
