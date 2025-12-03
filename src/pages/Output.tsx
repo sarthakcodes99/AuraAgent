@@ -550,7 +550,7 @@ const Output = () => {
                     }
                   }
                 }}
-                className="flex-1 min-h-[3rem] max-h-[200px] resize-none text-base min-w-0"
+                className="flex-1 min-h-[3rem] max-h-[200px] resize-none text-base min-w-0 overflow-hidden"
                 disabled={isGenerating}
                 rows={1}
                 onInput={(e) => {
