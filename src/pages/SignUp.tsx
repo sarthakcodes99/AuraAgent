@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -15,6 +16,43 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+
+  const passwordStrength = useMemo(() => {
+    if (!password) return { score: 0, label: '', color: '' };
+    
+    let score = 0;
+    
+    // Length checks
+    if (password.length >= 6) score += 20;
+    if (password.length >= 10) score += 20;
+    
+    // Character type checks
+    if (/[a-z]/.test(password)) score += 15;
+    if (/[A-Z]/.test(password)) score += 15;
+    if (/[0-9]/.test(password)) score += 15;
+    if (/[^a-zA-Z0-9]/.test(password)) score += 15;
+    
+    let label = '';
+    let color = '';
+    
+    if (score <= 30) {
+      label = 'Weak';
+      color = 'bg-red-500';
+    } else if (score <= 50) {
+      label = 'Fair';
+      color = 'bg-yellow-500';
+    } else if (score <= 70) {
+      label = 'Good';
+      color = 'bg-yellow-400';
+    } else {
+      label = 'Strong';
+      color = 'bg-green-500';
+    }
+    
+    return { score, label, color };
+  }, [password]);
+
+  const isPasswordStrong = passwordStrength.score >= 50;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +69,11 @@ const SignUp = () => {
     
     if (password.length < 6) {
       toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!isPasswordStrong) {
+      toast.error('Password is too weak. Please make it stronger.');
       return;
     }
     
@@ -112,6 +155,22 @@ const SignUp = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {password && (
+                <div className="space-y-1">
+                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${passwordStrength.score}%` }}
+                    />
+                  </div>
+                  <p className={`text-xs ${
+                    passwordStrength.score <= 30 ? 'text-red-500' : 
+                    passwordStrength.score <= 70 ? 'text-yellow-500' : 'text-green-500'
+                  }`}>
+                    {passwordStrength.label} {!isPasswordStrong && '- Must be at least Fair'}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -129,7 +188,7 @@ const SignUp = () => {
             <Button
               type="submit"
               className="w-full gradient-primary btn-glow text-white font-semibold"
-              disabled={loading}
+              disabled={loading || (password.length > 0 && !isPasswordStrong)}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
