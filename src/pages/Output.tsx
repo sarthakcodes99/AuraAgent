@@ -167,6 +167,38 @@ const Output = () => {
         }
       }
       
+      // Inject navigation handler script to fix internal links
+      const navHandlerScript = `<script>
+        document.addEventListener('click', function(e) {
+          const link = e.target.closest('a');
+          if (link) {
+            const href = link.getAttribute('href');
+            if (href) {
+              // Allow anchor links to work normally
+              if (href.startsWith('#')) {
+                const target = document.querySelector(href);
+                if (target) {
+                  e.preventDefault();
+                  target.scrollIntoView({ behavior: 'smooth' });
+                }
+              } 
+              // Handle same-page navigation (e.g., page.html, /about)
+              else if (!href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+                e.preventDefault();
+                // For single-page preview, just scroll to top or show section
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }
+          }
+        });
+      </script>`;
+      
+      if (mainHtml.includes('</body>')) {
+        mainHtml = mainHtml.replace('</body>', `${navHandlerScript}\n</body>`);
+      } else {
+        mainHtml = mainHtml.replace('</html>', `${navHandlerScript}\n</html>`);
+      }
+      
       // Remove ONLY the raw HTML (<!DOCTYPE html> to </html>) from text content
       // Keep all other text and markdown code blocks (CSS, JS, etc.)
       let textContent = content;
@@ -598,7 +630,7 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts"
+              sandbox="allow-scripts allow-same-origin"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
