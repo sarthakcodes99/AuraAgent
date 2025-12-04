@@ -367,22 +367,23 @@ const Output = () => {
           const updated = [...prev];
           updated[updated.length - 1] = { 
             role: 'ai' as const, 
-            content: '⏹️ Generation stopped by user' 
+            content: 'Generation stopped by user' 
           };
           return updated;
         });
+        setIsGenerating(false);
       } else {
         setMessages(prev => {
           const updated = [...prev];
           updated[updated.length - 1] = { 
             role: 'ai' as const, 
-            content: '❌ Generation failed, please try again' 
+            content: 'Generation failed' 
           };
           return updated;
         });
         toast.error("Failed to generate website");
+        setIsGenerating(false);
       }
-      setIsGenerating(false);
     } finally {
       abortControllerRef.current = null;
     }
@@ -485,10 +486,16 @@ const Output = () => {
                  ) : (
                   <div className="mb-4">
                     {msg.content === '...' ? (
-                      <div className="flex items-center gap-1">
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                        </div>
+                        <span className="text-primary font-medium animate-pulse">Agent is building your site!</span>
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
                       </div>
                     ) : (
                       <>
