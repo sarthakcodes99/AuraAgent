@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, Bot } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Output = () => {
@@ -27,6 +28,7 @@ const Output = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const typewriterIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const initialInputProcessed = useRef(false);
+  const projectIdRef = useRef<string | null>(null);
 
   const greetingText = user && profile?.name 
     ? `hey ${profile.name}, what are we building today?` 
@@ -35,6 +37,12 @@ const Output = () => {
   // Handle initial input from main page
   useEffect(() => {
     const initialInput = location.state?.userInput;
+    const projectId = location.state?.projectId;
+    
+    if (projectId) {
+      projectIdRef.current = projectId;
+    }
+    
     if (initialInput && !initialInputProcessed.current) {
       initialInputProcessed.current = true;
       setInputValue(initialInput);
@@ -101,6 +109,7 @@ const Output = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
+      e.preventDefault();
       
       const newWidth = (e.clientX / window.innerWidth) * 100;
       if (newWidth >= 0 && newWidth <= 50) {
@@ -110,9 +119,13 @@ const Output = () => {
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
 
     if (isResizing) {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
@@ -120,6 +133,8 @@ const Output = () => {
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
   }, [isResizing]);
 
@@ -292,6 +307,22 @@ const Output = () => {
     toast.info("Generation stopped");
   };
 
+  const saveProjectHtml = async (htmlContent: string) => {
+    if (!projectIdRef.current || !user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .update({ html_content: htmlContent })
+        .eq("id", projectIdRef.current);
+
+      if (error) throw error;
+      toast.success("Project saved!");
+    } catch (error) {
+      console.error("Error saving project:", error);
+    }
+  };
+
   const handleSendWithInput = async (input: string) => {
     if (!input.trim() || isGenerating) return;
     
@@ -386,6 +417,11 @@ const Output = () => {
           }
           setUserScrolling(false);
           setIsGenerating(false);
+          
+          // Save the project if projectId exists
+          if (projectIdRef.current && htmlCode) {
+            saveProjectHtml(htmlCode);
+          }
         }
       }, 10); // Very fast typing speed
       
@@ -441,9 +477,14 @@ const Output = () => {
                 Home
               </Button>
               {user ? (
-                <Button variant="ghost" onClick={signOut}>
-                  Logout
-                </Button>
+                <>
+                  <Button variant="ghost" onClick={() => navigate("/my-projects")}>
+                    My Projects
+                  </Button>
+                  <Button variant="ghost" onClick={signOut}>
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" onClick={() => navigate("/login")}>
@@ -519,42 +560,42 @@ const Output = () => {
                   <div className="mb-4">
                     {msg.content === '...' ? (
                       <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                        </div>
                         <span className="text-primary font-medium animate-pulse">Agent is building your site!</span>
-                        <div className="flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Bot className="w-5 h-5 text-primary animate-pulse" />
                         </div>
                       </div>
                     ) : (
-                      <>
-                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
-                        {idx === messages.length - 1 && currentCode && (
-                          <div className="mt-4 flex gap-2">
-                            <Button
-                              onClick={() => copyToClipboard(previewHtml, idx)}
-                              variant="outline"
-                              size="sm"
-                              className="gap-2"
-                            >
-                              {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                              Copy Code
-                            </Button>
-                            <Button
-                              onClick={downloadAllCode}
-                              variant="outline"
-                              size="sm"
-                              className="gap-2"
-                            >
-                              <Download className="w-4 h-4" />
-                              Download All
-                            </Button>
-                          </div>
-                        )}
-                      </>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap font-normal">{msg.content}</p>
+                          {idx === messages.length - 1 && currentCode && (
+                            <div className="mt-4 flex gap-2">
+                              <Button
+                                onClick={() => copyToClipboard(previewHtml, idx)}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                              >
+                                {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                Copy Code
+                              </Button>
+                              <Button
+                                onClick={downloadAllCode}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                              >
+                                <Download className="w-4 h-4" />
+                                Download All
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          <Bot className="w-5 h-5 text-primary" />
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
