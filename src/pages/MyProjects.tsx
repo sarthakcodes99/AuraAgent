@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowLeft, Eye, Trash2 } from "lucide-react";
+import { Sparkles, ArrowLeft, Eye, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -143,6 +143,20 @@ const MyProjects = () => {
                     Preview
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (project.html_content) {
+                        navigator.clipboard.writeText(project.html_content);
+                        toast.success("Source code copied to clipboard");
+                      } else {
+                        toast.error("No source code available");
+                      }
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(project.id)}
@@ -159,11 +173,12 @@ const MyProjects = () => {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewProject} onOpenChange={() => setPreviewProject(null)}>
-        <DialogContent className="max-w-6xl h-[80vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-[90vw] w-[90vw] h-[85vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>{previewProject?.name}</DialogTitle>
+            <p className="text-sm text-muted-foreground">Preview of your generated website</p>
           </DialogHeader>
-          <div className="flex-1 h-full overflow-hidden rounded-lg border border-border">
+          <div className="flex-1 min-h-0 overflow-hidden rounded-lg border border-border">
             {previewProject?.html_content ? (
               <iframe
                 srcDoc={previewProject.html_content}
