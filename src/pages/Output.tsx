@@ -102,7 +102,9 @@ const Output = () => {
     setUserScrolling(true);
   };
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsResizing(true);
   };
 
@@ -110,6 +112,7 @@ const Output = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       e.preventDefault();
+      e.stopPropagation();
       
       const newWidth = (e.clientX / window.innerWidth) * 100;
       if (newWidth >= 0 && newWidth <= 50) {
@@ -117,24 +120,26 @@ const Output = () => {
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       setIsResizing(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
     };
 
     if (isResizing) {
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.pointerEvents = 'none';
+      document.addEventListener('mousemove', handleMouseMove, { capture: true });
+      document.addEventListener('mouseup', handleMouseUp, { capture: true });
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove, { capture: true });
+      document.removeEventListener('mouseup', handleMouseUp, { capture: true });
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      document.body.style.pointerEvents = '';
     };
   }, [isResizing]);
 
@@ -510,9 +515,10 @@ const Output = () => {
           {/* Resize Handle */}
           <div
             onMouseDown={handleMouseDown}
-            className="absolute top-0 -right-1 w-2 h-full cursor-col-resize hover:bg-primary/30 z-40 group"
+            className={`absolute top-0 -right-2 w-4 h-full cursor-col-resize hover:bg-primary/20 z-50 ${isResizing ? 'bg-primary/30' : ''}`}
+            style={{ touchAction: 'none' }}
           >
-            <div className="absolute top-1/2 -translate-y-1/2 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 opacity-50 group-hover:opacity-100">
               <div className="w-1 h-12 bg-primary/50 rounded-full" />
             </div>
           </div>
