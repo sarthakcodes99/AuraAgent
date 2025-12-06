@@ -116,6 +116,13 @@ const Hero = () => {
               </span>
             </h1>
             
+            <p className="text-sm md:text-base font-medium tracking-wide">
+              With{" "}
+              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+                Aura Agent 1
+              </span>
+            </p>
+            
             <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto">
               Your AI website no code builder
             </p>
