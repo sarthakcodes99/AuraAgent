@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-space-galaxy.jpg";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Bot } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -116,11 +116,12 @@ const Hero = () => {
               </span>
             </h1>
             
-            <p className="text-sm md:text-base font-medium tracking-wide">
+            <p className="text-sm md:text-base font-medium tracking-wide flex items-center justify-center gap-1.5">
               With{" "}
               <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400 bg-clip-text text-transparent">
                 Aura Agent 1
               </span>
+              <Bot className="w-4 h-4 text-pink-500" />
             </p>
             
             <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto">
