@@ -156,12 +156,20 @@ const Output = () => {
     const jsPattern = /```(?:javascript|js)\n([\s\S]*?)```/gi;
     const jsMatches = [...content.matchAll(jsPattern)].map(m => m[1]);
     
-    // Extract HTML code blocks
+    // Extract HTML code blocks (including those that might contain full documents)
     const htmlBlockPattern = /```html\n([\s\S]*?)```/gi;
     const htmlBlockMatches = [...content.matchAll(htmlBlockPattern)].map(m => m[1]);
     
-    if (htmlMatches.length > 0) {
-      let mainHtml = htmlMatches[0];
+    // Check if HTML block contains a full document
+    const fullHtmlFromBlocks = htmlBlockMatches.filter(block => 
+      block.includes('<!DOCTYPE html>') || block.includes('<html')
+    );
+    
+    // Use either raw HTML matches or HTML from code blocks
+    const allHtmlDocs = [...htmlMatches, ...fullHtmlFromBlocks];
+    
+    if (allHtmlDocs.length > 0) {
+      let mainHtml = allHtmlDocs[0];
       
       // Inject CSS into HTML
       if (cssMatches.length > 0) {
@@ -219,14 +227,16 @@ const Output = () => {
         mainHtml = mainHtml.replace('</html>', `${navHandlerScript}\n</html>`);
       }
       
-      // Remove ONLY the raw HTML (<!DOCTYPE html> to </html>) from text content
-      // Keep all other text and markdown code blocks (CSS, JS, etc.)
+      // Remove ALL code from text content - keep only explanations
       let textContent = content;
       
       // Remove raw HTML documents (from <!DOCTYPE html> to </html>)
       htmlMatches.forEach(html => {
         textContent = textContent.replace(html, '');
       });
+      
+      // Remove ALL markdown code blocks (```html, ```css, ```javascript, ```js, etc.)
+      textContent = textContent.replace(/```(?:html|css|javascript|js)?\n[\s\S]*?```/gi, '');
       
       // Clean up extra whitespace and newlines
       textContent = textContent.replace(/\n{3,}/g, '\n\n').trim();
@@ -235,7 +245,7 @@ const Output = () => {
         htmlCode: mainHtml, 
         textContent,
         allCode: {
-          html: htmlMatches,
+          html: allHtmlDocs,
           css: cssMatches,
           js: jsMatches
         }
@@ -677,7 +687,8 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+              referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
