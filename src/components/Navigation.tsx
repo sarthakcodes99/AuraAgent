@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, LogOut, FolderOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import ThemeSelector from "./ThemeSelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,10 @@ const Navigation = () => {
                   <FolderOpen className="w-4 h-4" />
                   My Projects
                 </Link>
+                
+                {/* Theme Selector for logged-in users */}
+                <ThemeSelector />
+                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
