@@ -405,40 +405,27 @@ const Output = () => {
       
       // If HTML code exists, update preview
       if (htmlCode) {
-        // Inject script to intercept navigation and keep it inside the iframe
-        const navigationScript = `
+        // Inject script to prevent parent frame navigation while allowing internal functionality
+        const protectionScript = `
           <script>
-            document.addEventListener('click', function(e) {
-              var target = e.target.closest('a');
-              if (target && target.href) {
-                var href = target.getAttribute('href');
-                // Allow anchor links to work normally
-                if (href && href.startsWith('#')) {
-                  return;
-                }
-                // Prevent all other navigation from breaking out
-                e.preventDefault();
-                e.stopPropagation();
-                // For demo purposes, show an alert or handle internally
-                if (href && !href.startsWith('javascript:')) {
-                  alert('Navigation to: ' + href + '\\n\\nNote: External page navigation is disabled in preview mode.');
-                }
-              }
-            }, true);
-            // Also intercept form submissions
-            document.addEventListener('submit', function(e) {
-              e.preventDefault();
-              alert('Form submission is disabled in preview mode.');
-            }, true);
+            // Override window.top and window.parent to prevent breaking out
+            (function() {
+              try {
+                Object.defineProperty(window, 'top', { get: function() { return window; } });
+                Object.defineProperty(window, 'parent', { get: function() { return window; } });
+              } catch(e) {}
+            })();
           </script>
         `;
         
-        // Inject the script before </body>
+        // Inject protection script at the very beginning of head
         let processedHtml = htmlCode;
-        if (htmlCode.includes('</body>')) {
-          processedHtml = htmlCode.replace('</body>', navigationScript + '</body>');
+        if (htmlCode.includes('<head')) {
+          processedHtml = htmlCode.replace(/<head([^>]*)>/i, '<head$1>' + protectionScript);
+        } else if (htmlCode.includes('<html')) {
+          processedHtml = htmlCode.replace(/<html([^>]*)>/i, '<html$1><head>' + protectionScript + '</head>');
         } else {
-          processedHtml = htmlCode + navigationScript;
+          processedHtml = protectionScript + htmlCode;
         }
         
         setPreviewHtml(processedHtml);
@@ -723,7 +710,7 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-forms allow-popups allow-modals"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
