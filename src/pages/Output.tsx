@@ -405,7 +405,12 @@ const Output = () => {
       
       // If HTML code exists, update preview
       if (htmlCode) {
-        setPreviewHtml(htmlCode);
+        // Inject base tag to keep all navigation inside the iframe
+        const processedHtml = htmlCode.replace(
+          /<head([^>]*)>/i,
+          '<head$1><base target="_self">'
+        );
+        setPreviewHtml(processedHtml);
         if (allCode) {
           setCurrentCode(allCode);
         }
@@ -687,7 +692,7 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-forms allow-popups allow-modals"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
               referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
