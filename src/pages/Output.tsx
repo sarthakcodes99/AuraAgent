@@ -687,7 +687,7 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms"
+              sandbox="allow-scripts allow-forms allow-popups allow-modals"
               referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
