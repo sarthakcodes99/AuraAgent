@@ -405,11 +405,42 @@ const Output = () => {
       
       // If HTML code exists, update preview
       if (htmlCode) {
-        // Inject base tag to keep all navigation inside the iframe
-        const processedHtml = htmlCode.replace(
-          /<head([^>]*)>/i,
-          '<head$1><base target="_self">'
-        );
+        // Inject script to intercept navigation and keep it inside the iframe
+        const navigationScript = `
+          <script>
+            document.addEventListener('click', function(e) {
+              var target = e.target.closest('a');
+              if (target && target.href) {
+                var href = target.getAttribute('href');
+                // Allow anchor links to work normally
+                if (href && href.startsWith('#')) {
+                  return;
+                }
+                // Prevent all other navigation from breaking out
+                e.preventDefault();
+                e.stopPropagation();
+                // For demo purposes, show an alert or handle internally
+                if (href && !href.startsWith('javascript:')) {
+                  alert('Navigation to: ' + href + '\\n\\nNote: External page navigation is disabled in preview mode.');
+                }
+              }
+            }, true);
+            // Also intercept form submissions
+            document.addEventListener('submit', function(e) {
+              e.preventDefault();
+              alert('Form submission is disabled in preview mode.');
+            }, true);
+          </script>
+        `;
+        
+        // Inject the script before </body>
+        let processedHtml = htmlCode;
+        if (htmlCode.includes('</body>')) {
+          processedHtml = htmlCode.replace('</body>', navigationScript + '</body>');
+        } else {
+          processedHtml = htmlCode + navigationScript;
+        }
+        
         setPreviewHtml(processedHtml);
         if (allCode) {
           setCurrentCode(allCode);
@@ -692,7 +723,7 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+              sandbox="allow-scripts allow-forms allow-popups allow-modals"
               referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
