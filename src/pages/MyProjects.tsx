@@ -89,7 +89,7 @@ const MyProjects = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
               <Sparkles className="w-6 h-6 text-primary" />
-              <span className="text-2xl font-bold text-glow">AuraAgent</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400 bg-clip-text text-transparent">AuraAgent</span>
             </div>
             <Button variant="ghost" onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
