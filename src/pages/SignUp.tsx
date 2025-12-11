@@ -111,13 +111,13 @@ const SignUp = () => {
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-2">
               <Sparkles className="w-8 h-8 text-primary" />
-              <span className="text-3xl font-bold text-glow">OnePrompt</span>
+              <span className="text-3xl font-bold text-glow">AuraAgent</span>
             </div>
           </div>
           
           <h1 className="text-2xl font-bold text-center mb-2">Create Account</h1>
           <p className="text-center text-muted-foreground mb-8">
-            Join OnePrompt and start building
+            Join AuraAgent and start building
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">

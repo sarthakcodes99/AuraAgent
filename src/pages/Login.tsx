@@ -56,7 +56,7 @@ const Login = () => {
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-2">
               <Sparkles className="w-8 h-8 text-primary" />
-              <span className="text-3xl font-bold text-glow">OnePrompt</span>
+              <span className="text-3xl font-bold text-glow">AuraAgent</span>
             </div>
           </div>
           
