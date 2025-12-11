@@ -64,12 +64,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [currentTheme, setCurrentTheme] = useState<ThemeName>(() => {
-    const saved = localStorage.getItem("oneprompt-theme");
+    const saved = localStorage.getItem("auraagent-theme");
     return (saved as ThemeName) || "crimson-night";
   });
 
   useEffect(() => {
-    localStorage.setItem("oneprompt-theme", currentTheme);
+    localStorage.setItem("auraagent-theme", currentTheme);
     document.documentElement.setAttribute("data-theme", currentTheme);
   }, [currentTheme]);
 

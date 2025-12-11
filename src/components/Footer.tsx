@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-xl font-bold">OnePrompt</span>
+            <span className="text-xl font-bold">AuraAgent</span>
           </div>
           
           <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
@@ -18,7 +18,7 @@ const Footer = () => {
           </div>
           
           <p className="text-sm text-muted-foreground">
-            © 2024 OnePrompt. All rights reserved.
+            © 2024 AuraAgent. All rights reserved.
           </p>
         </div>
       </div>

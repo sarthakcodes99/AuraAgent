@@ -21,7 +21,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            <span className="text-2xl font-bold text-glow">OnePrompt</span>
+            <span className="text-2xl font-bold text-glow">AuraAgent</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-8">

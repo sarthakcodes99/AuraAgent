@@ -29,7 +29,7 @@ const ValueProposition = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-glow">
-            Why Choose OnePrompt?
+            Why Choose AuraAgent?
           </h2>
           <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
             The most powerful AI website builder designed for creators, entrepreneurs, and dreamers.

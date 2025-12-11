@@ -22,11 +22,11 @@ const About = () => {
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-glow">
-            About OnePrompt
+            About AuraAgent
           </h2>
           <p className="text-xl text-foreground/80 leading-relaxed">
-            OnePrompt is revolutionizing web development by combining the power of artificial intelligence 
-            with intuitive design principles. We believe that everyone should have the ability to bring 
+            AuraAgent is revolutionizing web development by combining the power of artificial intelligence 
+            with intuitive design principles. We believe that everyone should have the ability to bring
             their ideas to life on the web, without the barriers of technical complexity.
           </p>
         </div>
