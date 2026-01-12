@@ -600,7 +600,7 @@ const Output = () => {
                     {msg.content === '...' ? (
                       <div className="flex items-center gap-2">
                         <span className="text-foreground font-medium">Working</span>
-                        <div className="w-2 h-2 bg-primary animate-pulse" />
+                        <Bot className="w-4 h-4 text-primary animate-pulse" />
                       </div>
                     ) : (
                       <div className="flex items-start gap-3">
