@@ -598,11 +598,9 @@ const Output = () => {
                  ) : (
                   <div className="mb-4">
                     {msg.content === '...' ? (
-                      <div className="flex items-center gap-3">
-                        <span className="text-primary font-medium animate-pulse">Agent is building your site!</span>
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Bot className="w-5 h-5 text-primary animate-pulse" />
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-foreground font-medium">Working</span>
+                        <div className="w-2 h-2 bg-primary animate-pulse" />
                       </div>
                     ) : (
                       <div className="flex items-start gap-3">
