@@ -195,30 +195,86 @@ const Output = () => {
         }
       }
       
-      // Inject navigation handler script to fix internal links
+      // Inject comprehensive navigation handler script to fix all links and buttons
       const navHandlerScript = `<script>
-        document.addEventListener('click', function(e) {
-          const link = e.target.closest('a');
-          if (link) {
-            const href = link.getAttribute('href');
-            if (href) {
-              // Allow anchor links to work normally
-              if (href.startsWith('#')) {
-                const target = document.querySelector(href);
+        (function() {
+          // Prevent any navigation to parent/top frame
+          document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link) {
+              const href = link.getAttribute('href');
+              
+              // Always prevent default first for safety
+              e.preventDefault();
+              e.stopPropagation();
+              
+              if (!href || href === '' || href === '#' || href === 'javascript:void(0)' || href === 'javascript:;') {
+                // Logo/brand clicks - do nothing or scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+              }
+              
+              // Handle anchor links (scroll to section)
+              if (href.startsWith('#') && href.length > 1) {
+                const targetId = href.substring(1);
+                const target = document.getElementById(targetId) || document.querySelector('[name="' + targetId + '"]');
                 if (target) {
-                  e.preventDefault();
                   target.scrollIntoView({ behavior: 'smooth' });
                 }
-              } 
-              // Handle same-page navigation (e.g., page.html, /about)
-              else if (!href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
-                e.preventDefault();
-                // For single-page preview, just scroll to top or show section
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
               }
+              
+              // Handle external links - open in new tab
+              if (href.startsWith('http://') || href.startsWith('https://')) {
+                window.open(href, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              
+              // Handle mailto and tel links
+              if (href.startsWith('mailto:') || href.startsWith('tel:')) {
+                window.location.href = href;
+                return;
+              }
+              
+              // Handle internal page links (e.g., /about, page.html) - scroll to top
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-          }
-        });
+            
+            // Handle button clicks that might have onclick handlers
+            const button = e.target.closest('button');
+            if (button) {
+              // Let the button's onclick handler work if it exists
+              // But prevent any parent navigation
+              e.stopPropagation();
+            }
+          }, true);
+          
+          // Prevent form submissions from navigating away
+          document.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Show a message that form submission is simulated
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) {
+              const originalText = submitBtn.textContent || submitBtn.value;
+              submitBtn.textContent = 'Submitted!';
+              submitBtn.disabled = true;
+              setTimeout(function() {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+              }, 2000);
+            }
+          }, true);
+          
+          // Override window.open to always open in new tab safely
+          const originalOpen = window.open;
+          window.open = function(url, target, features) {
+            if (url && !url.startsWith('javascript:')) {
+              return originalOpen.call(window, url, '_blank', 'noopener,noreferrer');
+            }
+            return null;
+          };
+        })();
       </script>`;
       
       if (mainHtml.includes('</body>')) {
@@ -708,8 +764,8 @@ const Output = () => {
               srcDoc={previewHtml}
               className="w-full h-full border-0"
               title="Website Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-              referrerPolicy="no-referrer-when-downgrade"
+              sandbox="allow-scripts allow-forms allow-popups allow-modals"
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
