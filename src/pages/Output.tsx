@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, Bot } from "lucide-react";
+import { Sparkles, Send, ArrowDown, Copy, Check, Download, Square, Lightbulb, Bot } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -655,8 +655,8 @@ const Output = () => {
                   <div className="mb-4">
                     {msg.content === '...' ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-foreground font-medium">Working</span>
-                        <Bot className="w-4 h-4 text-primary animate-pulse" />
+                        <Lightbulb className="w-4 h-4 text-primary animate-pulse" />
+                        <span className="text-foreground font-medium">Thinking</span>
                       </div>
                     ) : (
                       <div className="flex items-start gap-3">
